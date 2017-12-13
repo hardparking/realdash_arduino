@@ -73,7 +73,6 @@ unsigned int rpm =  5252;
 
   
   if (client == true) {
-    Serial.print("Client connected\n");
     SendCANFrameToSerial(canFrameId1, buf1);
     SendCANFrameToSerial(canFrameId2, buf2);
     ReadIncomingSerialData();
@@ -151,6 +150,8 @@ void HandleIncomingSetValueFrame(unsigned long canFrameId, byte valueIndex, unsi
       // values 13-15 in frame 3201 are analog pins 0-2
       //analogWrite(valueIndex - 13, (unsigned int)value);
       analogWrite(A1, value);
+      Serial.print(value);
+      Serial.print("\n");
       if (value == 0) {
         zeroBoostvars();
         boostLevel1 = 1;
@@ -161,19 +162,19 @@ void HandleIncomingSetValueFrame(unsigned long canFrameId, byte valueIndex, unsi
       }
       if (value == 100) {
         zeroBoostvars();
-        boostLevel2 = 1;
+        boostLevel3 = 1;
       }
       if (value == 150) {
         zeroBoostvars();
-        boostLevel3 = 1;
-      }
-      if (value == 205) {
-        zeroBoostvars();
         boostLevel4 = 1;
+      }
+      if (value == 200) {
+        zeroBoostvars();
+        boostLevel5 = 1;
       }
       if (value == 250) {
         zeroBoostvars();
-        boostLevel5 = 1;
+        boostLevel6 = 1;
       }
     }
   }
