@@ -2,7 +2,7 @@
 #include <WiFi101.h>
 
 
-#include "arduino_secrets.h" 
+#include "/home/adam/realdash_arduino/Arduino/arduino_secrets.h" 
 //please enter your sensitive data in the Secret tab/arduino_secrets.h
 char ssid[] = SECRET_SSID;        // your network SSID (name)
 char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP
@@ -17,7 +17,7 @@ unsigned int digitalPins = 0;
 int analogPins[7] = {0};
 int count = 0;
 
-int boostLevel1 = 0;
+int boostLevel1 = 1;
 int boostLevel2 = 0;
 int boostLevel3 = 0;
 int boostLevel4 = 0;
@@ -41,6 +41,7 @@ void setup() {
     server.begin();
   }
  
+  analogWrite(A1, 0);
 }
 
 void loop() {
@@ -51,7 +52,7 @@ void loop() {
   byte buf1[8];
   byte buf2[8];
   
-unsigned int rpm =  31337;
+unsigned int rpm =  5252;
 
 
   buf1[0] = ((rpm >> 8) & 0xff);
