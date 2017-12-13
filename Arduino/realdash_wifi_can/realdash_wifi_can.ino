@@ -2,7 +2,7 @@
 #include <WiFi101.h>
 
 
-#include "/home/adam/realdash_arduino/Arduino/arduino_secrets.h" 
+#include "arduino_secrets.h" 
 //please enter your sensitive data in the Secret tab/arduino_secrets.h
 char ssid[] = SECRET_SSID;        // your network SSID (name)
 char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP
@@ -70,8 +70,10 @@ unsigned int rpm =  5252;
   buf2[3] = (boostLevel5 & 0xff);
   buf2[4] = ((boostLevel6 >> 8) & 0xff);
   buf2[5] = (boostLevel6 & 0xff);
+
   
   if (client == true) {
+    Serial.print("Client connected\n");
     SendCANFrameToSerial(canFrameId1, buf1);
     SendCANFrameToSerial(canFrameId2, buf2);
     ReadIncomingSerialData();
