@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+RealDash CAN protocol example
+Requires RealDash version 1.3.0 or newer
+-->
+<RealDashCAN>
+  <!-- baseId [optional] is added to each frame canId. -->
+  <!-- frames baseId="3200" -->
+  <frames>
+    <!-- 'canId' can identifier (= baseId + canId) -->
+    <frame canId="3200">
+      <!-- 'targetId' links value to RealDash input, see 'realdash_target_identifiers.txt for a complete list -->
+      <!-- OR -->
+      <!-- 'name' links value to RealDash input, if name is unknown to RealDash, input appears in 'ECU Specific' input category -->
+
+      <!-- 'units' is used for post calculations, "F", "mph", "psi", "bit" which need to be specified for dashboard conversions to work properly -->
+      <!-- 'offset' byte offset of the value in frame -->
+      <!-- 'length' value length in bytes -->
+      <!-- 'conversion' if omitted, value is read 'as-is'. Otherwise variables 'B0', 'B1', 'B2', 'B3' and 'V' can be used within conversion formula, where:
+                      B0 is first byte in value, B1 second byte, and so on
+                      V is the actual incoming value (composed of byte(s))
+                      examples;
+                      conversion="V/10" - result is incoming value / 10
+                      conversion="B0+15*(B1-43)" - result is 'first byte + 15 * (second byte - 43) -->
+
+      <!-- 1st CAN frame, RPM, MAP, CLT, TPS -->
+      <value targetId="37" units="RPM" offset="0" length="2"></value>
+      <value name="Boost Level 1" offset="2" length="2"></value>
+      <value name="Boost Level 2" offset="4" length="2"></value>
+      <value name="Boost Level 3" offset="6" length="2"></value>
+    </frame>
+      
+    <frame canId="3203">
+      <value name="Boost Level 4" offset="0" length="2"></value>
+      <value name="Boost Level 5" offset="2" length="2"></value>
+    </frame>
+
+    <frame canId="3201">
+      <!-- 2nd CAN frame, Arduino example digital inputs, these will appear in RealDash 'ECU Specific' input category -->
+      <!-- note that 9 bit values all come from same 2 bytes -->
+      <!-- if units="bit", RealDash always checks the lowest bit as of value on or off. Therefore the bitshift to the right on conversion -->
+      <value name="Arduino Example: Digital 1" units="bit" offset="0" length="2" conversion="V"></value>
+      <value name="Arduino Example: Digital 2" units="bit" offset="0" length="2" conversion="V>>1"></value>
+      <value name="Arduino Example: Digital 3" units="bit" offset="0" length="2" conversion="V>>2"></value>
+      <value name="Arduino Example: Digital 4" units="bit" offset="0" length="2" conversion="V>>3"></value>
+      <value name="Arduino Example: Digital 5" units="bit" offset="0" length="2" conversion="V>>4"></value>
+      <value name="Arduino Example: Digital 6" units="bit" offset="0" length="2" conversion="V>>5"></value>
+      <value name="Arduino Example: Digital 7" units="bit" offset="0" length="2" conversion="V>>6"></value>
+      <value name="Arduino Example: Digital 8" units="bit" offset="0" length="2" conversion="V>>7"></value>
+      <value name="Arduino Example: Digital 9" units="bit" offset="0" length="2" conversion="V>>8"></value>
+      <value name="Arduino Example: Digital 10" units="bit" offset="0" length="2" conversion="V>>9"></value>
+      <value name="Arduino Example: Digital 11" units="bit" offset="0" length="2" conversion="V>>10"></value>
+      <value name="Arduino Example: Digital 12" units="bit" offset="0" length="2" conversion="V>>11"></value>
+      <value name="Arduino Example: Digital 13" units="bit" offset="0" length="2" conversion="V>>12"></value>
+      <value name="Arduino Example: Analog 1" offset="2" length="2"></value>
+      <value name="Arduino Example: Analog 2" offset="4" length="2"></value>
+      <value name="Arduino Example: Analog 3" offset="6" length="2"></value>
+    </frame>
+
+    <!-- 3rd CAN frame contains rest of Arduino analog inputs -->
+    <frame canId="3202">
+      <value name="Arduino Example: Analog 4" offset="0" length="2"></value>
+      <value name="Arduino Example: Analog 5" offset="2" length="2"></value>
+      <value name="Arduino Example: Analog 6" offset="4" length="2"></value>
+      <value name="Arduino Example: Analog 7" offset="6" length="2"></value>
+    </frame>
+      
+  </frames>
+</RealDashCAN>
+
