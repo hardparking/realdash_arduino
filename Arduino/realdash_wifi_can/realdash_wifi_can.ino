@@ -150,8 +150,6 @@ void HandleIncomingSetValueFrame(unsigned long canFrameId, byte valueIndex, unsi
       // values 13-15 in frame 3201 are analog pins 0-2
       //analogWrite(valueIndex - 13, (unsigned int)value);
       analogWrite(A1, value);
-      Serial.print(value);
-      Serial.print("\n");
       if (value == 0) {
         zeroBoostvars();
         boostLevel1 = 1;
