@@ -1,6 +1,43 @@
 #include <SPI.h>
 #include <WiFi101.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <Adafruit_FeatherOLED.h>
 
+Adafruit_SSD1306 display = Adafruit_SSD1306();
+
+#if defined(ESP8266)
+  #define BUTTON_A 0
+  #define BUTTON_B 16
+  #define BUTTON_C 2
+  #define LED      0
+#elif defined(ESP32)
+  #define BUTTON_A 15
+  #define BUTTON_B 32
+  #define BUTTON_C 14
+  #define LED      13
+#elif defined(ARDUINO_STM32F2_FEATHER)
+  #define BUTTON_A PA15
+  #define BUTTON_B PC7
+  #define BUTTON_C PC5
+  #define LED PB5
+#elif defined(TEENSYDUINO)
+  #define BUTTON_A 4
+  #define BUTTON_B 3
+  #define BUTTON_C 8
+  #define LED 13
+#elif defined(ARDUINO_FEATHER52)
+  #define BUTTON_A 31
+  #define BUTTON_B 30
+  #define BUTTON_C 27
+  #define LED 17
+#else // 32u4, M0, and 328p
+  #define BUTTON_A 9
+  #define BUTTON_B 6
+  #define BUTTON_C 5
+  #define LED      13
+#endif
 
 #include "arduino_secrets.h" 
 //please enter your sensitive data in the Secret tab/arduino_secrets.h
@@ -23,9 +60,21 @@ int boostLevel3 = 0;
 int boostLevel4 = 0;
 int boostLevel5 = 0;
 int boostLevel6 = 0;
+int boostLevel = 1;
 
 
 void setup() {
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.display();
+  delay(1000);
+  display.clearDisplay();
+  display.display();
+  pinMode(BUTTON_A, INPUT_PULLUP);
+  pinMode(BUTTON_B, INPUT_PULLUP);
+  pinMode(BUTTON_C, INPUT_PULLUP);
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+
   WiFi.setPins(8,7,4,2);
   Serial.begin(115200);
   Serial.println("Attempting to connect to WPA network...");
@@ -40,8 +89,27 @@ void setup() {
   else {
     server.begin();
   }
- 
+
+  IPAddress ip = WiFi.localIP();
+  ip = WiFi.localIP();
+  
   analogWrite(A1, 0);
+
+  display.setCursor(0,0);
+  display.print("SSID:");
+  display.print(SECRET_SSID);
+  display.print("\n");
+  display.print("IP:");
+  display.println(ip);
+  display.println("Port: 8000");
+  display.println("Boost Level: 0");
+  display.setCursor(0,0);
+  display.display(); // actually display all of the above
+  delay(5000);
+  display.clearDisplay();
+  display.display();
+  
+  
 }
 
 void loop() {
@@ -51,12 +119,15 @@ void loop() {
   unsigned long canFrameId2 = 3203;
   byte buf1[8];
   byte buf2[8];
+  buttons(boostLevel);
+  boostSub(boostLevel);
+  drawDisplay(boostLevel);
+  delay(90); 
+  unsigned int amb =  0;
   
-unsigned int rpm =  5252;
 
-
-  buf1[0] = ((rpm >> 8) & 0xff);
-  buf1[1] = (rpm & 0xff);
+  buf1[0] = ((amb >> 8) & 0xff);
+  buf1[1] = (amb & 0xff);
   buf1[2] = ((boostLevel1 >> 8) & 0xff);
   buf1[3] = (boostLevel1 & 0xff);
   buf1[4] = ((boostLevel2 >> 8) & 0xff);
@@ -76,7 +147,7 @@ unsigned int rpm =  5252;
     SendCANFrameToSerial(canFrameId1, buf1);
     SendCANFrameToSerial(canFrameId2, buf2);
     ReadIncomingSerialData();
-  }
+  }  
 }
 
 void SendCANFrameToSerial(unsigned long canFrameId, const byte* frameData)
@@ -149,30 +220,24 @@ void HandleIncomingSetValueFrame(unsigned long canFrameId, byte valueIndex, unsi
     {
       // values 13-15 in frame 3201 are analog pins 0-2
       //analogWrite(valueIndex - 13, (unsigned int)value);
-      analogWrite(A1, value);
-      if (value == 0) {
-        zeroBoostvars();
-        boostLevel1 = 1;
+      
+      if (value == 1) {
+        boostSub(1);
       }
-      if (value == 50) {
-        zeroBoostvars();
-        boostLevel2 = 1;
+      if (value == 2) {
+        boostSub(2);
       }
-      if (value == 100) {
-        zeroBoostvars();
-        boostLevel3 = 1;
+      if (value == 3) {
+        boostSub(3);
       }
-      if (value == 150) {
-        zeroBoostvars();
-        boostLevel4 = 1;
+      if (value == 4) {
+        boostSub(4);
       }
-      if (value == 200) {
-        zeroBoostvars();
-        boostLevel5 = 1;
+      if (value == 5) {
+        boostSub(5);
       }
-      if (value == 250) {
-        zeroBoostvars();
-        boostLevel6 = 1;
+      if (value == 6) {
+        boostSub(6);
       }
     }
   }
@@ -186,6 +251,32 @@ void HandleIncomingSetValueFrame(unsigned long canFrameId, byte valueIndex, unsi
   }
 }
 
+void buttons(int x) {
+  if(! digitalRead(BUTTON_A)){
+    if (x <= 4) {
+      boostLevel++;
+      //boostSub(boostLevel);
+    }
+  }
+  
+  if (! digitalRead(BUTTON_C)){
+    if (x >= 2) {
+      boostLevel--;
+    }
+  }
+  if (! digitalRead(BUTTON_B)){
+    display.print("B");
+  }
+}
+void drawDisplay(int x) {
+  display.clearDisplay();
+  display.setCursor(0,0);
+  display.setTextSize(3);
+  display.print("Boost:");
+  display.println(x);
+  display.display();
+}
+
 void zeroBoostvars() {
         boostLevel1 = 0;
         boostLevel2 = 0;
@@ -194,3 +285,49 @@ void zeroBoostvars() {
         boostLevel5 = 0;
         boostLevel6 = 0;
 }
+
+void boostSub( int x ) {
+  if (x == 1) {
+    zeroBoostvars();
+    boostLevel1 = 1;
+    boostLevel = 1;
+    analogWrite(A1, 0);
+  }
+  if (x == 2) {
+    zeroBoostvars();
+    boostLevel2 = 1;
+    boostLevel = 2;
+    analogWrite(A1, 50);
+  }
+  if (x == 3) {
+    zeroBoostvars();
+    boostLevel3 = 1;
+    boostLevel = 3;
+    analogWrite(A1, 100);
+  }
+  if (x == 4) {
+    zeroBoostvars();
+    boostLevel4 = 1;
+    boostLevel = 4;
+    analogWrite(A1, 150);
+  }
+  if (x == 4) {
+    zeroBoostvars();
+    boostLevel4 = 1;
+    boostLevel = 4;
+    analogWrite(A1, 150);
+  }
+  if (x == 5) {
+    zeroBoostvars();
+    boostLevel5 = 1;
+    boostLevel = 5;
+    analogWrite(A1, 200);
+  }
+  if (x == 6) {
+    zeroBoostvars();
+    boostLevel6 = 1;
+    boostLevel = 6;
+    analogWrite(A1, 250);
+  }
+}
+
