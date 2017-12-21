@@ -13,7 +13,10 @@ emu_frame frame;
 
 #pragma pack(pop)
 
-int count = 1;
+const char *channels[256] = {
+    "RPM",
+    "MAP"
+};
 
 void setup() {
       Serial.begin(19200);
@@ -43,4 +46,3 @@ void loop() {
         }
       }
 }
-
