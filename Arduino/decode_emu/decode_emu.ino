@@ -24,6 +24,12 @@ void loop() {
       size_t readlen;
       if (Serial1.available() >= 5) {
         while ((readlen = Serial1.readBytes((char *)&frame, sizeof(frame))) != 0) {
+          for (;;) {
+            if (frame.magic != 0xa3) {
+              memmove(&frame, ((uint8_t *)&frame) + 1, sizeof(emu_frame) - 1);
+              frame.checksum = (uint8_t)Serial1.read();
+            }
+          }
           Serial.print("Channel: ");
           Serial.println(frame.channel);
           Serial.print("Magic: ");
