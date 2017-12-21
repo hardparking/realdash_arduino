@@ -28,12 +28,14 @@ void loop() {
             if (frame.magic != 0xa3) {
               memmove(&frame, ((uint8_t *)&frame) + 1, sizeof(emu_frame) - 1);
               frame.checksum = (uint8_t)Serial1.read();
+            } else {
+              break;
             }
           }
           Serial.print("Channel: ");
           Serial.println(frame.channel);
           Serial.print("Magic: ");
-          Serial.println(frame.magic);
+          Serial.println(frame.magic, HEX);
           Serial.print("Value: ");
           Serial.println(frame.value);
           Serial.print("Checksum: ");
