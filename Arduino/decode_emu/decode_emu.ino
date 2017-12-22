@@ -309,15 +309,13 @@ void loop() {
           if (frame.channel == 254) {
             break;
           }
-          if (channels[frame.channel].name == "oilPressure") {
             Serial.print("Channel: ");
             Serial.print(channels[frame.channel].name);
             Serial.print(": ");
             Serial.print((float)be16toh(frame.value) / channels[frame.channel].divisor);
             Serial.print(channels[frame.channel].unit);
             Serial.print("\n");          
-            delay(100);
-          }
+            delay(1);
         }
       }
 }
