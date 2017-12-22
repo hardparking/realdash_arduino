@@ -292,6 +292,7 @@ void setup() {
       Serial1.begin(19200);
 }
 
+
 void loop() {
       size_t readlen;
       if (Serial1.available() >= 5) {
@@ -307,11 +308,15 @@ void loop() {
           if (frame.channel == 254) {
             break;
           }
-          printf("Channel: %s, %d, %s\n",
-            channels[frame.channel].name,
-            (float)frame.value / channels[frame.channel].divisor,
-            channels[frame.channel].unit);
-          delay(1);
+          if (channels[frame.channel].name == "oilPressure") {
+            Serial.print("Channel: ");
+            Serial.print(channels[frame.channel].name);
+            Serial.print(": ");
+            Serial.print((float)be16toh(frame.value) / channels[frame.channel].divisor);
+            Serial.print(channels[frame.channel].unit);
+            Serial.print("\n");          
+            delay(100);
+          }
         }
       }
 }
