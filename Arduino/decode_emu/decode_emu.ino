@@ -17,6 +17,8 @@ emu_frame frame;
 
 #pragma pack(pop)
 
+#include "LiquidCrystal.h"
+LiquidCrystal lcd(8,9,4,5,6,7);
 
 struct {
   const char *name, *unit;
@@ -281,6 +283,11 @@ struct {
 };
 
 void setup() {
+      lcd.begin(16,2);
+      lcd.setCursor(0,0);
+      lcd.print("EcuMasters");
+      lcd.setCursor(0,1);
+      lcd.print("   EMU");
       Serial.begin(19200);
       Serial1.begin(19200);
 }
