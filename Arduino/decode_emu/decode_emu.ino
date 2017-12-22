@@ -15,43 +15,9 @@ typedef struct _emu_frame {
 
 emu_frame frame;
 
+float chSum = 0.0;
+
 #pragma pack(pop)
-const char *units[256] = {
-  "bunk",
-  "RPM",
-  "kPa",
-  "%",
-  "C",
-  "V",
-  "deg",
-  "ms",
-  "C",
-  "C",
-  "V",
-  "ms",
-  "AFR",
-  "gear",
-  "kPa",
-  "V",
-  "V",
-  "V",
-  "V",
-  "%",
-  "C",
-  "Bar",
-  "C",
-  "Bar",
-  "C",
-  "",
-  "C",
-  "λ",
-  "km/h",
-  "kPa",
-  "%",
-  "Table Set",
-  "λ",
-  "AFR", 
-};
 
 const char *channels[256] = {
     "bunk",
@@ -91,6 +57,80 @@ const char *channels[256] = {
     ""
 };
 
+const char *divider[256] {
+  "bunk",
+  "1",
+  "1",
+  "1",
+  "1",
+  "37",
+  "2",
+  "62",
+  "1",
+  "1",
+  "51",
+  "20",
+  "10",
+  "1",
+  "1",
+  "51",
+  "51",
+  "51",
+  "51",
+  "2",
+  "1",
+  "16",
+  "1",
+  "32",
+  "1",
+  "2",
+  "1",
+  "128",
+  "4",
+  "1",
+  "1",
+  "1",
+  "100",
+  "10",
+};
+
+const char *units[256] = {
+  "bunk",
+  "RPM",
+  "kPa",
+  "%",
+  "C",
+  "V",
+  "deg",
+  "ms",
+  "C",
+  "C",
+  "V",
+  "ms",
+  "AFR",
+  "gear",
+  "kPa",
+  "V",
+  "V",
+  "V",
+  "V",
+  "%",
+  "C",
+  "Bar",
+  "C",
+  "Bar",
+  "C",
+  "",
+  "C",
+  "λ",
+  "km/h",
+  "kPa",
+  "%",
+  "Table Set",
+  "λ",
+  "AFR", 
+};
+
 void setup() {
       Serial.begin(19200);
       Serial1.begin(19200);
@@ -111,15 +151,19 @@ void loop() {
           if (frame.channel == 254) {
             break;
           }
-          if (channels[frame.channel] == "oilPressure") {
+          int frameVal = be16toh(frame.value);
+          int frameDiv = divider[frame.channel];
+          
+          chSum = frameVal / frameDiv;
+          
+          //chSum = (be16toh(frame.value) / divider[frame.channel]);
           Serial.print(channels[frame.channel]);
           Serial.print(": ");
-          Serial.print(be16toh(frame.value), DEC);
+          Serial.print(chSum);
           Serial.print(" ");
           Serial.print(units[frame.channel]);
           Serial.print("\n");
           delay(1);
-          }
         }
       }
 }
