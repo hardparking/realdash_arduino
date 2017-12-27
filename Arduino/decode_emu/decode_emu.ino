@@ -299,11 +299,11 @@ void calculate_checksum(emu_frame frame) {
     +  (frame.value & 0x00ff)) & 0xff;
 }
 
-unsigned char checksum = 0;
+int checksum = 0;
 
 void loop() {
       size_t readlen;
-      frame.channel = 1;
+      emu_frame raw;
       if (Serial1.available() >= 5) {
         while ((readlen = Serial1.readBytes((char *)&frame, sizeof(frame))) != 0) {
           uint8_t checksum;
@@ -314,9 +314,8 @@ void loop() {
             } else {
               break;
             }
-          }
-          
-          //checksum = frame.channel + frame.magic + ((frame.value & 0xff00) >> 8) + (frame.value & 0x00ff)) & 0xff;
+          };  
+          checksum = frame.channel + frame.magic + ((frame.value & 0xff00) >> 8) + (frame.value & 0x00ff) % 255;
           if ((float)be16toh(frame.value) / channels[frame.channel].divisor > channels[frame.channel].gaugeMax) {
             continue;
           }
