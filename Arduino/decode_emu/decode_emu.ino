@@ -322,6 +322,7 @@ void setup() {
       lcd.begin(16,2);
       lcd.setCursor(0,0);
       lcd.print("EcuMasters ");
+      lcd.clear();
       
       Serial.begin(19200);
       Serial1.begin(19200);
@@ -365,19 +366,16 @@ void loop() {
             Serial.print(channels[frame.channel].unit);
             Serial.print(" ");
             Serial.print("\n");
-            delay(200);
-        }
-      }
-
- 
-lcd_key = read_LCD_buttons();  // read the buttons
-lcd.clear();
+            lcd_key = read_LCD_buttons();  // read the buttons
+//lcd.clear();
 lcd.setCursor(0,0);
 lcd.print(channels[lcdChannel].name);
 lcd.setCursor(0,1);
 lcd.print((float)be16toh(frame.value));
+lcd.setCursor(10,1);
 lcd.print(channels[lcdChannel].unit);
-delay(200);
+delay(300);
+lcd.clear();
 if(channels[lcdChannel].name == NULL) {
   lcdChannel = 1;
 }
@@ -414,5 +412,7 @@ switch (lcd_key) {
      break;
      }
  }
+        }
+      }
 
 }
