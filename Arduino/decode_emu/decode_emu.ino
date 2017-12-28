@@ -354,6 +354,10 @@ void loop() {
         while ((readlen = Serial1.readBytes((char *)&frame, sizeof(frame))) != 0) {
           uint8_t checksum;
           for (;;) {
+            checksum = frame.channel + frame.magic + ((frame.value & 0xff00) >> 8) + (frame.value & 0x00ff) % 255;
+            if (checksum == frame.checksum) {
+              break;
+            }
             if (frame.magic != 0xa3) {
               memmove(&frame, ((uint8_t *)&frame) + 1, sizeof(emu_frame) - 1);
               frame.checksum = (uint8_t)Serial1.read();
@@ -361,23 +365,23 @@ void loop() {
               break;
             }
           };  
-          checksum = frame.channel + frame.magic + ((frame.value & 0xff00) >> 8) + (frame.value & 0x00ff) % 255;
           if ((float)be16toh(frame.value) / channels[frame.channel].divisor > channels[frame.channel].gaugeMax) {
             continue;
           }
-          //if ((float)be16toh(frame.value) / channels[frame.channel].divisor < channels[frame.channel].gaugeMin) {
-          //  continue;
-          //}
-          DEBUG();
-          lcd.clear();
-          lcd.setCursor(0,0);
-          lcd.print(channels[lcdChannel].name);
-          lcd.setCursor(0,1);
-          lcd.print((float)be16toh(frame.value));
-          lcd.setCursor(10,1);
-          lcd.print(channels[lcdChannel].unit);
-          delay(300);
-            
+          //DEBUG();
+          if (lcdChannel == frame.channel) {
+            lcd.clear();
+            lcd.setCursor(0,0);
+            lcd.print(channels[lcdChannel].name);
+            lcd.setCursor(14,0);
+            lcd.print(lcdChannel);
+            lcd.setCursor(0,1);
+            lcd.print(be16toh(frame.value) / channels[frame.channel].divisor, 1);
+            lcd.print(frame.checksum);
+            lcd.print(" ");
+            lcd.setCursor(10,1);
+            lcd.print(channels[lcdChannel].unit);
+          }
           lcd_key = read_LCD_buttons();  // read the buttons
           switch (lcd_key) {
             case btnUP:
