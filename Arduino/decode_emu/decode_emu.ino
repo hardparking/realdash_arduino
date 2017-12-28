@@ -337,6 +337,16 @@ void calculate_checksum(emu_frame frame) {
 int checksum = 0;
 int lcdChannel = 1;
 
+void DEBUG() {
+  Serial.print("Channel: ");
+  Serial.print(channels[frame.channel].name);
+  Serial.print(": ");
+  Serial.print((float)be16toh(frame.value) / channels[frame.channel].divisor);
+  Serial.print(" ");
+  Serial.print(channels[frame.channel].unit);
+  Serial.print("\n");
+}
+
 void loop() {
       size_t readlen;
       emu_frame raw;
@@ -358,61 +368,36 @@ void loop() {
           //if ((float)be16toh(frame.value) / channels[frame.channel].divisor < channels[frame.channel].gaugeMin) {
           //  continue;
           //}
-            Serial.print("Channel: ");
-            Serial.print(channels[frame.channel].name);
-            Serial.print(": ");
-            Serial.print((float)be16toh(frame.value) / channels[frame.channel].divisor);
-            Serial.print(" ");
-            Serial.print(channels[frame.channel].unit);
-            Serial.print(" ");
-            Serial.print("\n");
-            lcd_key = read_LCD_buttons();  // read the buttons
-//lcd.clear();
-lcd.setCursor(0,0);
-lcd.print(channels[lcdChannel].name);
-lcd.setCursor(0,1);
-lcd.print((float)be16toh(frame.value));
-lcd.setCursor(10,1);
-lcd.print(channels[lcdChannel].unit);
-delay(300);
-lcd.clear();
-if(channels[lcdChannel].name == NULL) {
-  lcdChannel = 1;
-}
-
-switch (lcd_key) {
-   case btnRIGHT:
-     {
-     
-     break;
-     }
-   case btnLEFT:
-     {
-     
-     break;
-     }
-   case btnUP:
-     {
-     lcdChannel++;
-     break;
-     }
-   case btnDOWN:
-     {
-     lcdChannel--;
-     break;
-     }
-   case btnSELECT:
-     {
-     
-     break;
-     }
-     case btnNONE:
-     {
-     
-     break;
-     }
- }
+          DEBUG();
+          lcd.clear();
+          lcd.setCursor(0,0);
+          lcd.print(channels[lcdChannel].name);
+          lcd.setCursor(0,1);
+          lcd.print((float)be16toh(frame.value));
+          lcd.setCursor(10,1);
+          lcd.print(channels[lcdChannel].unit);
+          delay(300);
+            
+          lcd_key = read_LCD_buttons();  // read the buttons
+          switch (lcd_key) {
+            case btnUP:
+              {
+                lcdChannel++;
+                break;
+              }
+            case btnDOWN:
+            {
+              lcdChannel++;
+              break;
+            }
+            case btnNONE:
+            {
+              break;
+            }
+          }
+          if (channels[lcdChannel].name == NULL) {
+            lcdChannel = 1;
+          }
         }
       }
-
 }
