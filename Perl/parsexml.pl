@@ -22,7 +22,13 @@ print "\t{ NULL, NULL, 0, 0, 0},\n"; #ecumasters starts at 1 instead of 0 like C
 foreach my $key ( sort sort_channels (keys(%xml_hash))) {
     next unless $xml_hash{$key}->{'channel'};
     next if ($key eq "cel");
-    print "\t{ \"$key\", \"$xml_hash{$key}->{'unit'}\", $xml_hash{$key}->{'divider'}, $xml_hash{$key}->{'gaugeMin'}, $xml_hash{$key}->{'gaugeMax'} },\n";
+    my $username;
+    if ($xml_hash{$key}->{userName} eq '') {
+	    $username = $key;
+    } else {
+            $username = $xml_hash{$key}->{userName};
+    }
+    print "\t{ \"$username\", \"$xml_hash{$key}->{'unit'}\", $xml_hash{$key}->{'divider'}, $xml_hash{$key}->{'gaugeMin'}, $xml_hash{$key}->{'gaugeMax'} },\n";
     $counter++;
 }
 
