@@ -1,4 +1,12 @@
-#include <ButtonDebounce.h>
+#include <SPI.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_ILI9341.h>
+#include <Adafruit_STMPE610.h>
+#define BOXSIZE 40
+#define TS_MINX 3800
+#define TS_MAXX 100
+#define TS_MINY 100
+#define TS_MAXY 3750
 
 #define be16toh(s) \
   ((uint16_t)(((s & 0xff00) >> 8) | ((s & 0x00ff) << 8)))
@@ -18,57 +26,45 @@ emu_frame frame;
 
 #pragma pack(pop)
 
-#include "LiquidCrystal.h"
-LiquidCrystal lcd(8,9,4,5,6,7);
+#if defined (__AVR_ATmega32U4__) || defined(ARDUINO_SAMD_FEATHER_M0) || defined (__AVR_ATmega328P__) 
+   #define STMPE_CS 6
+   #define TFT_CS   9
+   #define TFT_DC   10
+   #define SD_CS    5
+#endif
 
-int lcd_key     = 0;
-int adc_key_in  = 0;
+Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
+Adafruit_STMPE610 ts = Adafruit_STMPE610(STMPE_CS);
 
-#define btnRIGHT  0
-#define btnUP     1
-#define btnDOWN   2
-#define btnLEFT   3
-#define btnSELECT 4
-#define btnNONE   5
+int checksum = 0;
 
-
-long lastDebounceTime = 0;
-long debounceDelay = 50;
-
-int read_LCD_buttons()
-{
- adc_key_in = analogRead(0);
- if (adc_key_in > 1000) {
-  return btnNONE; // We make this the 1st option for speed reasons since it will be the most likely result
- }
- if (adc_key_in < 50)   return btnRIGHT;  
- if (adc_key_in < 250) {
-  delay(200);
-  return btnUP; 
- }
- if (adc_key_in < 450) {
-  delay(200);
-  return btnDOWN; 
- }
- if (adc_key_in < 650)  return btnLEFT; 
- if (adc_key_in < 850)  return btnSELECT;  
- return btnNONE;  // when all others fail, return this...
-}
+struct {
+  const char *position;
+  int emu_channel;
+} frontPage[6] = {
+  { "1a", 1},
+  { "1b", 2},
+  { "2a", 3},
+  { "2b", 4},
+  { "3a", 5},
+  { "3b", 6}
+};
 
 struct {
   const char *name, *unit;
   float divisor;
   int gaugeMin, gaugeMax;
+  float value;
 } channels[256] = {
         { NULL, NULL, 0, 0, 0},
         { "RPM", "RPM", 1, 0, 9000 },
         { "MAP", "kPa", 1, 0, 400 },
         { "TPS", "%", 1, 0, 100 },
         { "IAT", "C", 1, -40, 120 },
-        { "Battery voltage", "V", 37, 8, 20 },
-        { "Igntion Angle", "deg", 2, -20, 60 },
-        { "Secondary inj. PW", "ms", 62, 0, 25 },
-        { "Injectors PW", "ms", 62, 0, 25 },
+        { "Battery", "V", 37, 8, 20 },
+        { "Ign. Angle", "deg", 2, -20, 60 },
+        { "Sec. inj. PW", "ms", 62, 0, 25 },
+        { "Inj. PW", "ms", 62, 0, 25 },
         { "EGT #1", "C", 1, 0, 1100 },
         { "EGT #2", "C", 1, 0, 1100 },
         { "Knock Level", "V", 51, 0, 5 },
@@ -80,17 +76,17 @@ struct {
         { "Analog #2", "V", 51, 0, 5 },
         { "Analog #3", "V", 51, 0, 5 },
         { "Analog #4", "V", 51, 0, 5 },
-        { "Injectors DC", "%", 2, 0, 100 },
-        { "ECU Temperature", "C", 1, -40, 120 },
-        { "Oil pressure", "Bar", 16, 0, 12 },
-        { "Oil temperature", "C", 1, 0, 160 },
-        { "Fuel pressure", "Bar", 32, 0, 7 },
+        { "Inj. DC", "%", 2, 0, 100 },
+        { "ECU Temp.", "C", 1, -40, 120 },
+        { "Oil press.", "Bar", 16, 0, 12 },
+        { "Oil temp.", "C", 1, 0, 160 },
+        { "Fuel press.", "Bar", 32, 0, 7 },
         { "CLT", "C", 1, -40, 220 },
-        { "FF Ethanol content", "%", 2, 0, 100 },
-        { "FF Fuel Temp", "C", 1, -30, 120 },
+        { "FF content", "%", 2, 0, 100 },
+        { "FF Temp", "C", 1, -30, 120 },
         { "Lambda", "λ", 128, 0.7, 1.3 },
-        { "Vehicle Speed", "km/h", 4, 0, 300 },
-        { "Fuel pressure delta", "kPa", 1, 100, 500 },
+        { "Speed", "km/h", 4, 0, 300 },
+        { "FP delta", "kPa", 1, 100, 500 },
         { "Fuel level", "%", 1, 0, 100 },
         { "Tables set", "", 1, 0, 1 },
         { "Lambda target", "λ", 100, 0.7, 1.3 },
@@ -319,110 +315,161 @@ struct {
 };
 
 void setup() {
-      lcd.begin(16,2);
-      lcd.setCursor(0,0);
-      lcd.print("EcuMasters ");
-      lcd.setCursor(0,1);
-      lcd.print("Plug me in!");
-      Serial.begin(19200);
-      Serial1.begin(19200);
+  tft.begin();
+  if (!ts.begin()) {
+    Serial.println("Couldn't start touchscreen controller");
+    while (1);
+  }
+  Serial.println("Touchscreen started");
+  
+  tft.setRotation(1);
+  tft.fillScreen(ILI9341_BLACK);
+  tft.setCursor(0, 0);
+  tft.setTextColor(ILI9341_WHITE);
+  tft.setTextSize(3);
+  tft.println("No Serial Data");
+  tft.println("Plug me in please!");
+  Serial.begin(19200);
+  Serial1.begin(19200);
+  
 }
-
-int checksum = 0;
-int lcdChannel = 1;
-int reading = 0;
 
 void DEBUG() {
-  
-  Serial.print("Channel: ");
-  Serial.print(channels[frame.channel].name);
-  Serial.print(": ");
-  Serial.print((float)be16toh(frame.value) / channels[frame.channel].divisor, 0);
-  Serial.print(" ");
-  Serial.print(channels[frame.channel].unit);
-  Serial.print("\n");
-  lcd_key = read_LCD_buttons();  // read the buttons
-  switch (lcd_key) {
-    case btnUP:
-      {
-        lcdChannel++;
-        break;
-      }
-    case btnDOWN:
-      {
-        lcdChannel--;
-        break;
-      }
-    case btnNONE:
-      {
-        break;
-      }
-   }
-   if (lcdChannel == 36) {
-      lcdChannel = 1;
-   }
-   if (lcdChannel == 0) {
-    lcdChannel = 35;
-   }
-   lcd.clear();
-   lcd.setCursor(14,0);
-   lcd.print(lcdChannel);
+  //put testing stuff here
 }
-
+int i;
+int skip = 0;
+int count = 1;
+int startlist = 1;
+int endlist = 15;
+int newchannel;
 void loop() {
-      //DEBUG();
-      size_t readlen;
-      emu_frame raw;
-      if (Serial1.available() >= 5) {
-        while ((readlen = Serial1.readBytes((char *)&frame, sizeof(frame))) != 0) {
-          uint8_t checksum;
-          for (;;) {
-            checksum = frame.channel + frame.magic + ((frame.value & 0xff00) >> 8) + (frame.value & 0x00ff) % 255;
-            if (checksum == frame.checksum) {
-              break;
-            }
-            if (frame.magic != 0xa3) {
-              memmove(&frame, ((uint8_t *)&frame) + 1, sizeof(emu_frame) - 1);
-              frame.checksum = (uint8_t)Serial1.read();
-            } else {
-              break;
-            }
-          };
-          if (lcdChannel == frame.channel) {
-            lcd.clear();
-            lcd.setCursor(0,0);
-            lcd.print(channels[lcdChannel].name);
-            lcd.setCursor(14,0);
-            lcd.print(lcdChannel);
-            lcd.setCursor(0,1);
-            lcd.print(be16toh(frame.value) / channels[frame.channel].divisor);
-            lcd.print(" ");
-            lcd.setCursor(10,1);
-            lcd.print(channels[lcdChannel].unit);
-          }
-          lcd_key = read_LCD_buttons();  // read the buttons
-          switch (lcd_key) {
-            case btnUP:
-              {
-                lcdChannel++;
-                break;
-              }
-            case btnDOWN:
-            {
-              lcdChannel--;
-              break;
-            }
-            case btnNONE:
-            {
-              break;
-            }
-          }
-          if (lcdChannel == 36) {
-            lcdChannel = 1;
-          }
-          if (lcdChannel == 0) {
-            lcdChannel = 35;
-          }
+  TS_Point p = ts.getPoint();
+  size_t readlen;
+  emu_frame raw;
+  if (Serial1.available() >= 5) {
+    while ((readlen = Serial1.readBytes((char *)&frame, sizeof(frame))) != 0) {
+      uint8_t checksum;
+      for (;;) {
+        checksum = frame.channel + frame.magic + ((frame.value & 0xff00) >> 8) + (frame.value & 0x00ff) % 255;
+        if (checksum == frame.checksum) {
+          break;
+        }
+        if (frame.magic != 0xa3) {
+          memmove(&frame, ((uint8_t *)&frame) + 1, sizeof(emu_frame) - 1);
+          frame.checksum = (uint8_t)Serial1.read();
+        } else {
+          break;
         }
       }
+      channels[frame.channel].value = be16toh(frame.value) / channels[frame.channel].divisor;
+  
+      p.x = map(p.x, TS_MINX, TS_MAXX, 0, tft.width());
+      p.y = map(p.y, TS_MINY, TS_MAXY, 0, tft.height());
+      if(ts.touched()) {
+        tft.fillScreen(ILI9341_BLACK);
+        TS_Point p = ts.getPoint();
+        tft.setCursor(0,0);
+        if(p.x < 1200 && p.y < 1800) {
+          frontPage[0].emu_channel = drawMenu(frontPage[0].emu_channel);
+        }
+        if (p.x < 1200 && p.y > 2200) {
+          frontPage[1].emu_channel = drawMenu(frontPage[1].emu_channel);
+        }
+        if (p.x > 1500 && p.x < 2500 && p.y < 1900) {
+          frontPage[2].emu_channel = drawMenu(frontPage[2].emu_channel);
+        }
+        if (p.x > 1500 && p.x < 2500 && p.y > 2000) {
+          frontPage[3].emu_channel = drawMenu(frontPage[3].emu_channel);
+        }
+        if (p.x > 2800 && p.y < 1800) {
+          frontPage[4].emu_channel = drawMenu(frontPage[4].emu_channel);
+        }
+        if (p.x > 2800 && p.y > 1800) {
+          frontPage[5].emu_channel = drawMenu(frontPage[5].emu_channel);
+        }
+      }
+      //1a  
+      tft.drawRect(5, 5, 155, 75, ILI9341_WHITE);
+      tft.setCursor(140,8);
+      tft.setTextSize(1);
+      tft.println(channels[frontPage[0].emu_channel].unit);
+      tft.setCursor(10,62);
+      tft.setTextSize(2);
+      tft.println(channels[frontPage[0].emu_channel].name);
+      tft.setCursor(20,15);
+      tft.setTextSize(5);
+      tft.println(channels[frontPage[0].emu_channel].value);
+  
+      //1b
+      tft.drawRect(165, 5, 155, 75, ILI9341_WHITE);
+      tft.setCursor(300,8);
+      tft.setTextSize(1);
+      tft.println(channels[frontPage[1].emu_channel].unit);
+      tft.setCursor(170,62);
+      tft.setTextSize(2);
+      tft.println(channels[frontPage[1].emu_channel].name);
+      tft.setCursor(180,15);
+      tft.setTextSize(5);
+      tft.println(channels[frontPage[1].emu_channel].value);
+ 
+  
+      //2a
+      tft.drawRect(5, 85, 155, 75, ILI9341_WHITE);
+      tft.setCursor(140,88);
+      tft.setTextSize(1);
+      tft.println(channels[frontPage[2].emu_channel].unit);
+      tft.setCursor(10,142);
+      tft.setTextSize(2);
+      tft.println(channels[frontPage[2].emu_channel].name);
+      tft.setCursor(20,95);
+      tft.setTextSize(5);
+      tft.println(channels[frontPage[2].emu_channel].value);
+
+      //2b
+      tft.drawRect(165, 85, 155, 75, ILI9341_WHITE);
+      tft.setCursor(300,88);
+      tft.setTextSize(1);
+      tft.println(channels[frontPage[3].emu_channel].unit);
+      tft.setCursor(170,142);
+      tft.setTextSize(2);
+      tft.println(channels[frontPage[3].emu_channel].name);
+      tft.setCursor(180,95);
+      tft.setTextSize(5);
+      tft.println(channels[frontPage[3].emu_channel].value);
+  
+      //3a
+      tft.drawRect(5, 165, 155, 75, ILI9341_WHITE);
+      tft.setCursor(140,168);
+      tft.setTextSize(1);
+      tft.println(channels[frontPage[4].emu_channel].unit);
+      tft.setCursor(10,222);
+      tft.setTextSize(2);
+      tft.println(channels[frontPage[4].emu_channel].name);
+      tft.setCursor(20,175);
+      tft.setTextSize(5);
+      tft.println(channels[frontPage[4].emu_channel].value);
+
+      //3b
+      tft.drawRect(165, 165, 155, 75, ILI9341_WHITE);
+      tft.setCursor(300,168);
+      tft.setTextSize(1);
+      tft.println(channels[frontPage[5].emu_channel].unit);
+      tft.setCursor(170,222);
+      tft.setTextSize(2);
+      tft.println(channels[frontPage[5].emu_channel].name);
+      tft.setCursor(180,175);
+      tft.setTextSize(5);
+      tft.println(channels[frontPage[5].emu_channel].value);
+    }
+  }
+}
+
+int drawMenu(int curchannel) {
+  if (curchannel >= 35) {
+    curchannel = 1;
+  } else {
+    curchannel++;
+  }
+  return curchannel;
 }
