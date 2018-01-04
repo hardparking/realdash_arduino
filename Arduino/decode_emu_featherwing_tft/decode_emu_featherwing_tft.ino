@@ -52,42 +52,29 @@ struct {
 
 uint16_t values[256];
 
-//float calculateValue (uint16_t value) {
-//  return value / channels[frame.channel].divisor
-//}
 
-/*
-void render_rpm(uint16_t value) {
-
-      tft.drawRect(5, 5, 155, 75, ILI9341_WHITE);
-      tft.setCursor(140, 8);
-      tft.setTextSize(1);
-      tft.println(channels[frontPage[0].emu_channel].unit);
-      tft.setCursor(10, 62);
-      tft.setTextSize(2);
-      tft.println(channels[frontPage[0].emu_channel].name);
-      tft.setCursor(20, 15);
-      tft.setTextSize(5);
-      tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
-      tft.println(values[frontPage[0].emu_channel], 0);
-      tft.setTextColor(ILI9341_WHITE);
+void render_rpm(uint8_t channel) {
+  
 }
-*/
 
-uint16_t render (uint16_t value) {
-  return value / 10;
-};
+void render_map(uint8_t channel) {
+
+}
+
+void render_tps(uint8_t channel) {
+  
+}
 
 struct {
   const char *name, *unit;
   float divisor;
   int gaugeMin, gaugeMax;
-  uint16_t (*render)(uint16_t value);
+  void (*render)(uint8_t channel);
 } channels[256] = {
   { NULL, NULL, 0, 0, 0},
-  { "RPM", "RPM", 1, 0, 9000, render },
-  { "MAP", "kPa", 1, 0, 400 },
-  { "TPS", "%", 1, 0, 100 },
+  { "RPM", "RPM", 1, 0, 9000, render_rpm },
+  { "MAP", "kPa", 1, 0, 400, render_map },
+  { "TPS", "%", 1, 0, 100, render_tps },
   { "IAT", "C", 1, -40, 120 },
   { "Battery", "V", 37, 8, 20 },
   { "Ign. Angle", "deg", 2, -20, 60 },
@@ -342,9 +329,6 @@ struct {
   {"cel", "", 1, 0, 0}
 };
 
-channels[1].render_rpm(value);
-
-
 
 void setup() {
   
@@ -390,6 +374,7 @@ void DEBUG() {
 int i;
 int newchannel;
 void loop() {
+  
   TS_Point p = ts.getPoint();
   size_t readlen;
   emu_frame raw;
@@ -409,7 +394,7 @@ void loop() {
         }
       }
       
-      values[frame.channel] = be16toh(frame.value);
+      values[frame.channel] = frame.value;
 
       p.x = map(p.x, TS_MINX, TS_MAXX, 0, tft.width());
       p.y = map(p.y, TS_MINY, TS_MAXY, 0, tft.height());
