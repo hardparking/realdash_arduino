@@ -50,15 +50,42 @@ struct {
   { "3b", 6}
 };
 
-float values[256];
+uint16_t values[256];
+
+//float calculateValue (uint16_t value) {
+//  return value / channels[frame.channel].divisor
+//}
+
+/*
+void render_rpm(uint16_t value) {
+
+      tft.drawRect(5, 5, 155, 75, ILI9341_WHITE);
+      tft.setCursor(140, 8);
+      tft.setTextSize(1);
+      tft.println(channels[frontPage[0].emu_channel].unit);
+      tft.setCursor(10, 62);
+      tft.setTextSize(2);
+      tft.println(channels[frontPage[0].emu_channel].name);
+      tft.setCursor(20, 15);
+      tft.setTextSize(5);
+      tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
+      tft.println(values[frontPage[0].emu_channel], 0);
+      tft.setTextColor(ILI9341_WHITE);
+}
+*/
+
+uint16_t render (uint16_t value) {
+  return value / 10;
+};
 
 struct {
   const char *name, *unit;
   float divisor;
   int gaugeMin, gaugeMax;
+  uint16_t (*render)(uint16_t value);
 } channels[256] = {
   { NULL, NULL, 0, 0, 0},
-  { "RPM", "RPM", 1, 0, 9000 },
+  { "RPM", "RPM", 1, 0, 9000, render },
   { "MAP", "kPa", 1, 0, 400 },
   { "TPS", "%", 1, 0, 100 },
   { "IAT", "C", 1, -40, 120 },
@@ -315,6 +342,10 @@ struct {
   {"cel", "", 1, 0, 0}
 };
 
+channels[1].render_rpm(value);
+
+
+
 void setup() {
   
   memset(&values, 0, sizeof(values));
@@ -328,10 +359,24 @@ void setup() {
 
   tft.setRotation(1);
   tft.fillScreen(ILI9341_BLACK);
-  tft.setCursor(0, 0);
-  tft.println("Plug me in plz!");
-  tft.setTextColor(ILI9341_WHITE);
-  tft.setTextSize(3);
+  
+  tft.drawRect(5, 5, 155, 75, ILI9341_WHITE); //1a
+  //tft.fillRect(10, 10, 145, 65, ILI9341_RED);
+  
+  tft.drawRect(165, 5, 155, 75, ILI9341_WHITE); //1b
+  //tft.fillRect(170, 10, 145, 65, ILI9341_RED);
+  
+  tft.drawRect(5, 85, 155, 75, ILI9341_WHITE); //2a
+  //tft.fillRect(10, 90, 145, 65, ILI9341_RED);
+  
+  tft.drawRect(165, 85, 155, 75, ILI9341_WHITE); //2b
+  //tft.fillRect(170, 90, 145, 65, ILI9341_RED);
+
+  tft.drawRect(5, 165, 155, 75, ILI9341_WHITE); //3a
+  //tft.fillRect(10, 170, 145, 65, ILI9341_RED);
+  
+  tft.drawRect(165, 165, 155, 75, ILI9341_WHITE); //3b
+  //tft.fillRect(170, 170, 145, 65, ILI9341_RED);
 
   Serial.begin(19200);
   Serial1.begin(19200);
@@ -340,18 +385,16 @@ void setup() {
 void DEBUG() {
   //put testing stuff here
 }
+
+
 int i;
-int skip = 0;
-int count = 1;
-int startlist = 1;
-int endlist = 15;
 int newchannel;
 void loop() {
   TS_Point p = ts.getPoint();
   size_t readlen;
   emu_frame raw;
-  if (Serial1.available() >= 5) {
-    while ((readlen = Serial1.readBytes((char *)&frame, sizeof(frame))) != 0) {
+  //if (Serial1.available() >= 5) {
+  //  while ((readlen = Serial1.readBytes((char *)&frame, sizeof(frame))) != 0) {
       uint8_t checksum;
       for (;;) {
         checksum = frame.channel + frame.magic + ((frame.value & 0xff00) >> 8) + (frame.value & 0x00ff) % 255;
@@ -366,17 +409,18 @@ void loop() {
         }
       }
       
-      values[frame.channel] = be16toh(frame.value) / channels[frame.channel].divisor;
+      values[frame.channel] = be16toh(frame.value);
 
       p.x = map(p.x, TS_MINX, TS_MAXX, 0, tft.width());
       p.y = map(p.y, TS_MINY, TS_MAXY, 0, tft.height());
       if (ts.touched()) {
-        tft.fillScreen(ILI9341_BLACK);
+        //tft.fillScreen(ILI9341_BLACK);
         TS_Point p = ts.getPoint();
         tft.setCursor(0, 0);
         if (p.x < 1200 && p.y < 1800) {
           frontPage[0].emu_channel = drawMenu(frontPage[0].emu_channel);
           Serial.println("1a pushed");
+          tft.fillRect(10, 10, 145, 65, ILI9341_RED);
         }
         if (p.x < 1200 && p.y > 2200) {
           frontPage[1].emu_channel = drawMenu(frontPage[1].emu_channel);
@@ -399,6 +443,7 @@ void loop() {
           Serial.println("3b pushed");
         }
       }
+      /*
       //1a
       tft.drawRect(5, 5, 155, 75, ILI9341_WHITE);
       tft.setCursor(140, 8);
@@ -412,6 +457,7 @@ void loop() {
       tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
       tft.println(values[frontPage[0].emu_channel], 0);
       tft.setTextColor(ILI9341_WHITE);
+
       Serial.print("Channel: ");
       Serial.print(values[frontPage[0].emu_channel] );
       Serial.print(" ");
@@ -482,8 +528,9 @@ void loop() {
       tft.setTextSize(5);
       tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
       tft.println(values[frontPage[5].emu_channel], 0);
-    }
-  }
+      */
+    //}
+  //}
 }
 
 int drawMenu(int curchannel) {
@@ -495,7 +542,4 @@ int drawMenu(int curchannel) {
   return curchannel;
 }
 
-void calculateValue (float value) {
-  return be16toh(frame.value) / channels[frame.channel].divisor
-}
 
