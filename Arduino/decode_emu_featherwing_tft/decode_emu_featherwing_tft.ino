@@ -54,15 +54,27 @@ uint16_t values[256];
 
 
 void render_rpm(uint8_t channel) {
-  
+  tft.println(be16toh(values[channel]));
 }
 
 void render_map(uint8_t channel) {
-
+  tft.println(be16toh(values[channel]));
 }
 
 void render_tps(uint8_t channel) {
-  
+  tft.println(be16toh(values[channel]));
+}
+
+void render_iat(uint8_t channel) {
+  tft.println(be16toh(values[channel]));
+}
+
+void render_bat(uint8_t channel) {
+  tft.println(be16toh(values[channel]) / 37);
+}
+
+void render_ign(uint8_t channel) {
+  tft.println(be16toh(values[channel]) / 2);
 }
 
 struct {
@@ -72,9 +84,9 @@ struct {
   void (*render)(uint8_t channel);
 } channels[256] = {
   { NULL, NULL, 0, 0, 0},
-  { "RPM", "RPM", 1, 0, 9000, render_rpm },
-  { "MAP", "kPa", 1, 0, 400, render_map },
-  { "TPS", "%", 1, 0, 100, render_tps },
+  { "RPM", "RPM", 1, 0, 9000 },
+  { "MAP", "kPa", 1, 0, 400 },
+  { "TPS", "%", 1, 0, 100 },
   { "IAT", "C", 1, -40, 120 },
   { "Battery", "V", 37, 8, 20 },
   { "Ign. Angle", "deg", 2, -20, 60 },
@@ -361,9 +373,17 @@ void setup() {
   
   tft.drawRect(165, 165, 155, 75, ILI9341_WHITE); //3b
   //tft.fillRect(170, 170, 145, 65, ILI9341_RED);
-
+  
+  
+  
   Serial.begin(19200);
   Serial1.begin(19200);
+  tft.setCursor(20, 15);
+  tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
+  tft.setTextSize(5);
+  tft.setCursor(20, 15);
+
+  
 }
 
 void DEBUG() {
@@ -373,6 +393,7 @@ void DEBUG() {
 
 int i;
 int newchannel;
+int count = 0;
 void loop() {
   
   TS_Point p = ts.getPoint();
@@ -394,7 +415,7 @@ void loop() {
         }
       }
       
-      values[frame.channel] = frame.value;
+      //values[frame.channel] = frame.value;
 
       p.x = map(p.x, TS_MINX, TS_MAXX, 0, tft.width());
       p.y = map(p.y, TS_MINY, TS_MAXY, 0, tft.height());
@@ -428,7 +449,24 @@ void loop() {
           Serial.println("3b pushed");
         }
       }
+      values[2] = count;
+      values[1] = count;
+      count++;
+      tft.setCursor(20, 15);
+      render_rpm(1);
       /*
+      tft.setCursor(180, 15);
+      render_map(2);
+      tft.setCursor(20, 95);
+      render_map(2);
+      tft.setCursor(180, 95);
+      render_map(2);
+      tft.setCursor(20, 175);
+      render_rpm(1);
+      tft.setCursor(180, 175);
+      render_bat(1);
+      //Serial.println(values[1]);
+      
       //1a
       tft.drawRect(5, 5, 155, 75, ILI9341_WHITE);
       tft.setCursor(140, 8);
