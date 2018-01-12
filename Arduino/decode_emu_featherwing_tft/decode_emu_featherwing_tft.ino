@@ -399,8 +399,8 @@ void loop() {
   TS_Point p = ts.getPoint();
   size_t readlen;
   emu_frame raw;
-  //if (Serial1.available() >= 5) {
-  //  while ((readlen = Serial1.readBytes((char *)&frame, sizeof(frame))) != 0) {
+  if (Serial1.available() >= 5) {
+    while ((readlen = Serial1.readBytes((char *)&frame, sizeof(frame))) != 0) {
       uint8_t checksum;
       for (;;) {
         checksum = frame.channel + frame.magic + ((frame.value & 0xff00) >> 8) + (frame.value & 0x00ff) % 255;
@@ -415,7 +415,7 @@ void loop() {
         }
       }
       
-      //values[frame.channel] = frame.value;
+      values[frame.channel] = frame.value;
 
       p.x = map(p.x, TS_MINX, TS_MAXX, 0, tft.width());
       p.y = map(p.y, TS_MINY, TS_MAXY, 0, tft.height());
@@ -449,11 +449,8 @@ void loop() {
           Serial.println("3b pushed");
         }
       }
-      values[2] = count;
-      values[1] = count;
-      count++;
-      tft.setCursor(20, 15);
-      render_rpm(1);
+      
+      
       /*
       tft.setCursor(180, 15);
       render_map(2);
@@ -552,8 +549,8 @@ void loop() {
       tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
       tft.println(values[frontPage[5].emu_channel], 0);
       */
-    //}
-  //}
+    }
+  }
 }
 
 int drawMenu(int curchannel) {
