@@ -698,63 +698,6 @@ void loop() {
   TS_Point p = ts.getPoint();
   p.x = map(p.x, TS_MINX, TS_MAXX, 0, tft.width());
   p.y = map(p.y, TS_MINY, TS_MAXY, 0, tft.height());
-  if (ts.touched()) {
-    TS_Point p = ts.getPoint();
-    if (p.x < 1200 && p.y < 1800) {
-      delay(200);
-      Serial.println("1a pushed");
-      d1a++;
-      if (d1a >= 35) {
-        d1a = 1;
-      }
-      render_d1a();
-    }
-    if (p.x < 1200 && p.y > 2200) {
-      delay(200);
-      Serial.println("1b pushed");
-      d1b++;
-      if (d1b >= 35) {
-        d1b = 1;
-      }
-      render_d1b();
-    }
-    if (p.x > 1500 && p.x < 2500 && p.y < 1900) {
-      delay(200);
-      Serial.println("2a pushed");
-      d2a++;
-      if (d2a >= 35) {
-        d2a = 1;
-      }
-      render_d2a();
-    }
-    if (p.x > 1500 && p.x < 2500 && p.y > 2000) {
-      delay(200);
-      Serial.println("2b pushed");
-      d2b++;
-      if (d2b >= 35) {
-        d2b++;
-      }
-      render_d2b();
-    }
-    if (p.x > 2800 && p.y < 1800) {
-      delay(200);
-      Serial.println("3a pushed");
-      d3a++;
-      if (d3a >= 35) {
-        d3a++;
-      }
-      render_d3a();
-    }
-    if (p.x > 2800 && p.y > 1800) {
-      delay(200);
-      Serial.println("3b pushed");
-      d3b++;
-      if (d3b >= 35) {
-        d3b++;
-      }
-      render_d3b();
-    }
-  }
 
   size_t readlen;
   emu_frame raw;
@@ -776,7 +719,7 @@ void loop() {
       }
 
       values[frame.channel] = frame.value;
-
+      
       //1a
       tft.setCursor(20, 15);
       channels[d1a].render();
@@ -795,7 +738,63 @@ void loop() {
       //3b
       tft.setCursor(180, 175);
       channels[d3b].render();
+      if (ts.touched()) {
+        TS_Point p = ts.getPoint();
+        while (ts.touched()) {
+          p = ts.getPoint();
+        }
+        if (p.x < 1200 && p.y < 1800) {
+          Serial.println("1a pushed");
+          d1a++;
+          if (d1a >= 35) {
+            d1a = 1;
+          }
+          render_d1a();
+          while (!ts.bufferEmpty()) ts.getPoint();
+        }
+        if (p.x < 1200 && p.y > 2200) {
+          Serial.println("1b pushed");
+          d1b++;
+          if (d1b >= 35) {
+            d1b = 1;
+          }
+          render_d1b();
+          while (!ts.bufferEmpty()) ts.getPoint();
+        }
+        if (p.x > 1500 && p.x < 2500 && p.y < 1900) {
+          Serial.println("2a pushed");
+          d2a++;
+          if (d2a >= 35) {
+            d2a = 1;
+          }
+          render_d2a();
+        }
+        if (p.x > 1500 && p.x < 2500 && p  .y > 2000) {
+          Serial.println("2b pushed");
+          d2b++;
+          if (d2b >= 35) {
+            d2b++;
+          }
+          render_d2b();
+        }
+        if (p.x > 2800 && p.y < 1800) {
+          Serial.println("3a pushed");
+          d3a++;
+          if (d3a >= 35) {
+            d3a++;
+          }
+          render_d3a();
+        }
+        if (p.x > 2800 && p.y > 1800) {
+          Serial.println("3b pushed");
+          d3b++;
+          if (d3b >= 35) {
+            d3b++;
+          }
+          render_d3b();
 
+        }
+      }
     }
   }
 }
