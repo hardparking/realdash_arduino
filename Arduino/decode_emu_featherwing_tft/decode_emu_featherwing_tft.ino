@@ -43,8 +43,8 @@ int d2a = 3;
 int d2b = 4;
 int d3a = 5;
 int d3b = 6;
-
 uint16_t values[256];
+
 
 uint16_t rpm;
 void render_rpm() {
@@ -590,6 +590,71 @@ struct {
   {"cel", "", 1, 0, 0, render_cel}
 };
 
+void render_d1a() {
+  tft.fillRect(7, 7, 150, 69, ILI9341_BLACK);
+  tft.setCursor(140, 8);
+  tft.setTextSize(1);
+  tft.println(channels[d1a].unit);
+  tft.setCursor(10, 62);
+  tft.setTextSize(2);
+  tft.println(channels[d1a].name);
+  tft.setTextSize(5);
+}
+
+void render_d1b() {
+  tft.fillRect(167, 7, 150, 69, ILI9341_BLACK);
+  tft.setCursor(300, 8);
+  tft.setTextSize(1);
+  tft.println(channels[d1b].unit);
+  tft.setCursor(170, 62);
+  tft.setTextSize(2);
+  tft.println(channels[d1b].name);
+  tft.setTextSize(5);
+}
+
+void render_d2a() {
+  tft.fillRect(7, 87, 150, 69, ILI9341_BLACK);
+  tft.setCursor(140, 88);
+  tft.setTextSize(1);
+  tft.println(channels[d2a].unit);
+  tft.setCursor(10, 142);
+  tft.setTextSize(2);
+  tft.println(channels[d2a].name);
+  tft.setTextSize(5);
+}
+
+void render_d2b() {
+  tft.fillRect(167, 87, 150, 69, ILI9341_BLACK);
+  tft.setCursor(300, 88);
+  tft.setTextSize(1);
+  tft.println(channels[d2b].unit);
+  tft.setCursor(170, 142);
+  tft.setTextSize(2);
+  tft.println(channels[d2b].name);
+  tft.setTextSize(5);
+}
+
+void render_d3a() {
+  tft.fillRect(7, 167, 150, 69, ILI9341_BLACK);
+  tft.setCursor(140, 168);
+  tft.setTextSize(1);
+  tft.println(channels[d3a].unit);
+  tft.setCursor(10, 222);
+  tft.setTextSize(2);
+  tft.println(channels[d3a].name);
+  tft.setTextSize(5);
+}
+
+void render_d3b() {
+  tft.fillRect(167, 167, 150, 69, ILI9341_BLACK);
+  tft.setCursor(300, 168);
+  tft.setTextSize(1);
+  tft.println(channels[d3b].unit);
+  tft.setCursor(170, 222);
+  tft.setTextSize(2);
+  tft.println(channels[d3b].name);
+  tft.setTextSize(5);
+}
 
 void setup() {
   Serial.begin(19200);
@@ -628,66 +693,6 @@ void DEBUG() {
   //put testing stuff here
 }
 
-
-void render_d1a() {
-  tft.fillRect(7, 7, 150, 69, ILI9341_BLACK);
-  tft.setCursor(140, 8);
-  tft.setTextSize(1);
-  tft.println(channels[d1a].unit);
-  tft.setCursor(10, 62);
-  tft.setTextSize(2);
-  tft.println(channels[d1a].name);
-}
-
-void render_d1b() {
-  tft.fillRect(167, 7, 150, 69, ILI9341_BLACK);
-  tft.setCursor(300, 8);
-  tft.setTextSize(1);
-  tft.println(channels[d1b].unit);
-  tft.setCursor(170, 62);
-  tft.setTextSize(2);
-  tft.println(channels[d1b].name);
-}
-
-void render_d2a() {
-  tft.fillRect(7, 87, 150, 69, ILI9341_BLACK);
-  tft.setCursor(140, 88);
-  tft.setTextSize(1);
-  tft.println(channels[d2a].unit);
-  tft.setCursor(10, 142);
-  tft.setTextSize(2);
-  tft.println(channels[d2a].name);
-}
-
-void render_d2b() {
-  tft.fillRect(167, 87, 150, 69, ILI9341_BLACK);
-  tft.setCursor(300, 88);
-  tft.setTextSize(1);
-  tft.println(channels[d2b].unit);
-  tft.setCursor(170, 142);
-  tft.setTextSize(2);
-  tft.println(channels[d2b].name);
-}
-
-void render_d3a() {
-  tft.fillRect(7, 167, 150, 69, ILI9341_BLACK);
-  tft.setCursor(140, 168);
-  tft.setTextSize(1);
-  tft.println(channels[d3a].unit);
-  tft.setCursor(10, 222);
-  tft.setTextSize(2);
-  tft.println(channels[d3a].name);
-}
-
-void render_d3b() {
-  tft.fillRect(167, 167, 150, 69, ILI9341_BLACK);
-  tft.setCursor(300, 168);
-  tft.setTextSize(1);
-  tft.println(channels[d3b].unit);
-  tft.setCursor(170, 222);
-  tft.setTextSize(2);
-  tft.println(channels[d3b].name);
-}
 
 void loop() {
   TS_Point p = ts.getPoint();
@@ -772,7 +777,6 @@ void loop() {
 
       values[frame.channel] = frame.value;
 
-      tft.setTextSize(5);
       //1a
       tft.setCursor(20, 15);
       channels[d1a].render();
