@@ -2,7 +2,6 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_ILI9341.h>
 #include <Adafruit_STMPE610.h>
-#define BOXSIZE 40
 #define TS_MINX 3800
 #define TS_MAXX 100
 #define TS_MINY 100
@@ -37,18 +36,12 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 Adafruit_STMPE610 ts = Adafruit_STMPE610(STMPE_CS);
 
 int checksum = 0;
-int d1a = 1;
-int d1b = 2;
-int d2a = 3;
-int d2b = 4;
-int d3a = 5;
-int d3b = 6;
-uint16_t values[256];
-
+int page = 1;
+uint16_t values[35];
 
 uint16_t rpm;
 void render_rpm() {
-  if (rpm != values[1]) {
+  if (rpm != values[1] && be16toh(rpm) <= 9000 && be16toh(rpm) >= 0) {
     tft.println(be16toh(values[1]));
     rpm = values[1];
   }
@@ -56,7 +49,7 @@ void render_rpm() {
 
 uint16_t mapv;
 void render_map() {
-  if (mapv != values[2]) {
+  if (mapv != values[2] && be16toh(mapv) <= 400 && be16toh(mapv) >= 0) {
     tft.println(be16toh(values[2]));
     mapv = values[2];
   }
@@ -64,7 +57,7 @@ void render_map() {
 
 uint16_t tps;
 void render_tps() {
-  if (tps != values[3]) {
+  if (tps != values[3] && be16toh(tps) <= 100 && be16toh(tps) >= 0) {
     tft.println(be16toh(values[3]));
     tps = values[3];
   }
@@ -72,7 +65,7 @@ void render_tps() {
 
 uint16_t iat;
 void render_iat() {
-  if (iat != values[4]) {
+  if (iat != values[4] && be16toh(iat) <= 120 && be16toh(iat) >= -140 ) {
     tft.println(be16toh(values[4l]));
     iat = values[4];
   }
@@ -80,7 +73,7 @@ void render_iat() {
 
 uint16_t bat;
 void render_bat() {
-  if (bat != values[5]) {
+  if (bat != values[5] && be16toh(bat) <= 20 && be16toh(bat) >= 8) {
     tft.println(be16toh(values[5]) / 37);
     bat = values[5];
   }
@@ -88,7 +81,7 @@ void render_bat() {
 
 uint16_t ign;
 void render_ign() {
-  if (ign != values[6]) {
+  if (ign != values[6] && be16toh(ign) <= 60 && be16toh(ign) >= -20) {
     tft.println(be16toh(values[6]) / 2);
     ign = values[6];
   }
@@ -96,7 +89,7 @@ void render_ign() {
 
 uint16_t secinjpw;
 void render_secinjpw() {
-  if (secinjpw != values[7]) {
+  if (secinjpw != values[7] && be16toh(secinjpw) <= 25 && be16toh(secinjpw) >= 0 ) {
     tft.println(be16toh(values[7]) / 62);
     secinjpw = values[7];
   }
@@ -104,7 +97,7 @@ void render_secinjpw() {
 
 uint16_t injpw;
 void render_injpw() {
-  if (injpw != values[8]) {
+  if (injpw != values[8] && be16toh(injpw) <= 25 && be16toh(injpw) >= 0 ) {
     tft.println(be16toh(values[8]) / 62);
     injpw = values[8];
   }
@@ -112,7 +105,7 @@ void render_injpw() {
 
 uint16_t egt1;
 void render_egt1() {
-  if (egt1 != values[9]) {
+  if (egt1 != values[9] && be16toh(egt1) <= 1100 && be16toh(egt1) >= 0) {
     tft.println(be16toh(values[9]));
     egt1 = values[9];
   }
@@ -120,7 +113,7 @@ void render_egt1() {
 
 uint16_t egt2;
 void render_egt2() {
-  if (egt2 != values[10]) {
+  if (egt2 != values[10] && be16toh(egt2) <= 1100 && be16toh(egt2) >= 0) {
     tft.println(be16toh(values[10]));
     egt2 = values[10];
   }
@@ -128,7 +121,7 @@ void render_egt2() {
 
 uint16_t knockv;
 void render_knockv() {
-  if (knockv != values[11]) {
+  if (knockv != values[11] && be16toh(knockv) <= 5 && be16toh(knockv) >= 0) {
     tft.println(be16toh(values[11]) / 51);
     knockv = values[11];
   }
@@ -136,7 +129,7 @@ void render_knockv() {
 
 uint16_t dwell;
 void render_dwell() {
-  if (dwell != values[12]) {
+  if (dwell != values[12] && be16toh(dwell) <= 10 && be16toh(dwell) >= 0 ) {
     tft.println(be16toh(values[12]) / 20);
     dwell = values[12];
   }
@@ -144,7 +137,7 @@ void render_dwell() {
 
 uint16_t afr;
 void render_afr() {
-  if (afr != values[13]) {
+  if (afr != values[13] && be16toh(afr) <= 20 && be16toh(afr) >= 0) {
     tft.println(be16toh(values[13]) / 10);
     afr = values[13];
   }
@@ -152,7 +145,7 @@ void render_afr() {
 
 uint16_t gear;
 void render_gear() {
-  if (gear != values[14]) {
+  if (gear != values[14] && be16toh(gear) <= 6 && be16toh(gear) >= 0) {
     tft.println(be16toh(values[14]));
     gear = values[14];
   }
@@ -160,7 +153,7 @@ void render_gear() {
 
 uint16_t baro;
 void render_baro() {
-  if (baro != values[15]) {
+  if (baro != values[15] && be16toh(baro) <= 120 && be16toh(baro) >= 50) {
     tft.println(be16toh(values[15]));
     baro = values[15];
   }
@@ -168,7 +161,7 @@ void render_baro() {
 
 uint16_t analog1;
 void render_analog1() {
-  if (analog1 != values[16]) {
+  if (analog1 != values[16] && be16toh(analog1) <= 5 && be16toh(analog1) >= 0) {
     tft.println(be16toh(values[16]) / 51);
     analog1 = values[16];
   }
@@ -176,7 +169,7 @@ void render_analog1() {
 
 uint16_t analog2;
 void render_analog2() {
-  if (analog2 != values[17]) {
+  if (analog2 != values[17] && be16toh(analog2) <= 5 && be16toh(analog2) >= 0) {
     tft.println(be16toh(values[17]) / 51);
     analog2 = values[17];
   }
@@ -184,7 +177,7 @@ void render_analog2() {
 
 uint16_t analog3;
 void render_analog3() {
-  if (analog3 != values[18]) {
+  if (analog3 != values[18] && be16toh(analog3) <= 5 && be16toh(analog3) >= 0) {
     tft.println(be16toh(values[18]) / 51);
     analog3 = values[18];
   }
@@ -192,7 +185,7 @@ void render_analog3() {
 
 uint16_t analog4;
 void render_analog4() {
-  if (analog4 != values[19]) {
+  if (analog4 != values[19] && be16toh(analog4) <= 5 && be16toh(analog4) >= 0) {
     tft.println(be16toh(values[19]) / 51);
     analog3 = values[19];
   }
@@ -200,7 +193,7 @@ void render_analog4() {
 
 uint16_t injdc;
 void render_injdc() {
-  if (injdc != values[20]) {
+  if (injdc != values[20] && be16toh(injdc) <= 100 && be16toh(injdc) >= 0) {
     tft.println(be16toh(values[20]) / 2);
     injdc = values[20];
   }
@@ -208,7 +201,7 @@ void render_injdc() {
 
 uint16_t ecutmp;
 void render_ecutmp() {
-  if (ecutmp != values[21]) {
+  if (ecutmp != values[21] && be16toh(ecutmp) <= 120 && be16toh(ecutmp) >= -40) {
     tft.println(be16toh(values[21]));
     ecutmp = values[21];
   }
@@ -216,7 +209,7 @@ void render_ecutmp() {
 
 uint16_t oilps;
 void render_oilps() {
-  if (oilps != values[22]) {
+  if (oilps != values[22] && be16toh(oilps) <= 16 && be16toh(oilps) >= 0) {
     tft.println(be16toh(values[22]) / 16);
     oilps = values[22];
   }
@@ -224,7 +217,7 @@ void render_oilps() {
 
 uint16_t oiltmp;
 void render_oiltmp() {
-  if (oiltmp != values[23]) {
+  if (oiltmp != values[23] && be16toh(oiltmp) <= 160 && be16toh(oiltmp) >= 0) {
     tft.println(be16toh(values[23]));
     oiltmp = values[23];
   }
@@ -232,7 +225,7 @@ void render_oiltmp() {
 
 uint16_t fuelps;
 void render_fuelps() {
-  if (fuelps != values[24]) {
+  if (fuelps != values[24] && be16toh(fuelps) <= 32 && be16toh(fuelps) >= 0) {
     tft.println(be16toh(values[24]));
     fuelps = values[24];
   }
@@ -240,7 +233,7 @@ void render_fuelps() {
 
 uint16_t clt;
 void render_clt() {
-  if (clt != values[25]) {
+  if (clt != values[25] && be16toh(clt) <= 220 && be16toh(clt) >= -40) {
     tft.println(be16toh(values[25]) / 32);
     fuelps = values[25];
   }
@@ -248,7 +241,7 @@ void render_clt() {
 
 uint16_t ffcnt;
 void render_ffcnt() {
-  if (ffcnt != values[26]) {
+  if (ffcnt != values[26] && be16toh(ffcnt) <= 100 && be16toh(ffcnt) >= 0) {
     tft.println(be16toh(values[26]) / 2);
     ffcnt = values[26];
   }
@@ -256,7 +249,7 @@ void render_ffcnt() {
 
 uint16_t fftmp;
 void render_fftmp() {
-  if (fftmp != values[27]) {
+  if (fftmp != values[27] && be16toh(fftmp) <= 120 && be16toh(fftmp) >= -30) {
     tft.println(be16toh(values[27]));
     fftmp = values[27];
   }
@@ -264,7 +257,7 @@ void render_fftmp() {
 
 uint16_t lambda;
 void render_lambda() {
-  if (lambda != values[28]) {
+  if (lambda != values[28] && be16toh(lambda) <= 1.3 && be16toh(lambda) >= 0.7) {
     tft.println(be16toh(values[28]) / 128);
     lambda = values[28];
   }
@@ -272,7 +265,7 @@ void render_lambda() {
 
 uint16_t speedd;
 void render_speed() {
-  if (speedd != values[29]) {
+  if (speedd != values[29] && be16toh(speedd) <= 300 && be16toh(speedd) >= 0) {
     tft.println(be16toh(values[29]) / 4);
     speedd = values[29];
   }
@@ -280,7 +273,7 @@ void render_speed() {
 
 uint16_t fpdelta;
 void render_fpdelta() {
-  if (speedd != values[30]) {
+  if (speedd != values[30] && be16toh(fpdelta) <= 500 && be16toh(fpdelta) >= 100) {
     tft.println(be16toh(values[30]) / 4);
     speedd = values[30];
   }
@@ -288,7 +281,7 @@ void render_fpdelta() {
 
 uint16_t fuellvl;
 void render_fuellvl() {
-  if (fuellvl != values[31]) {
+  if (fuellvl != values[31] && be16toh(fuellvl) <= 100 && be16toh(fuellvl) >= 0) {
     tft.println(be16toh(values[31]));
     fuellvl = values[31];
   }
@@ -296,7 +289,7 @@ void render_fuellvl() {
 
 uint16_t table;
 void render_table() {
-  if (table != values[32]) {
+  if (table != values[32] && be16toh(table) <= 1 && be16toh(table) >= 0) {
     tft.println(be16toh(values[32]));
     table = values[32];
   }
@@ -304,7 +297,7 @@ void render_table() {
 
 uint16_t lambdatgt;
 void render_lambdatgt() {
-  if (lambdatgt != values[33]) {
+  if (lambdatgt != values[33] && be16toh(lambdatgt) <= 1.3 && be16toh(lambdatgt) >= 0.7) {
     tft.println(be16toh(values[33]) / 100);
     table = values[33];
   }
@@ -312,7 +305,7 @@ void render_lambdatgt() {
 
 uint16_t afrtgt;
 void render_afrtgt() {
-  if (afrtgt != values[34]) {
+  if (afrtgt != values[34] && be16toh(afrtgt) <= 20 && be16toh(afrtgt) >= 10) {
     tft.println(be16toh(values[34]) / 10);
     afrtgt = values[34];
   }
@@ -320,7 +313,7 @@ void render_afrtgt() {
 
 uint16_t cel;
 void render_cel() {
-  if (afr != values[255]) {
+  if (afr != values[255] && be16toh(cel) <= 1 && be16toh(cel) >= 0) {
     tft.println(be16toh(values[255]));
     cel = values[255];
   }
@@ -328,371 +321,74 @@ void render_cel() {
 
 struct {
   const char *name, *unit;
-  float divisor;
-  int gaugeMin, gaugeMax;
   void (*render)();
 } channels[256] = {
-  { NULL, NULL, 0, 0, 0},
-  { "RPM", "RPM", 1, 0, 9000, render_rpm  },
-  { "MAP", "kPa", 1, 0, 400, render_map },
-  { "TPS", "%", 1, 0, 100, render_tps },
-  { "IAT", "C", 1, -40, 120, render_iat },
-  { "Battery", "V", 37, 8, 20, render_bat },
-  { "Ign. Angle", "deg", 2, -20, 60, render_ign },
-  { "Sec. inj. PW", "ms", 62, 0, 25, render_secinjpw },
-  { "Inj. PW", "ms", 62, 0, 25, render_injpw },
-  { "EGT #1", "C", 1, 0, 1100, render_egt1 },
-  { "EGT #2", "C", 1, 0, 1100, render_egt2 },
-  { "Knock Level", "V", 51, 0, 5, render_knockv },
-  { "Dwell Time", "ms", 20, 0, 10, render_dwell },
-  { "AFR", "AFR", 10, 10, 20, render_afr },
-  { "Gear", "", 1, 0, 6, render_gear },
-  { "BARO", "kPa", 1, 50, 120, render_baro },
-  { "Analog #1", "V", 51, 0, 5, render_analog1 },
-  { "Analog #2", "V", 51, 0, 5, render_analog2 },
-  { "Analog #3", "V", 51, 0, 5, render_analog3 },
-  { "Analog #4", "V", 51, 0, 5, render_analog4 },
-  { "Inj. DC", "%", 2, 0, 100, render_injdc },
-  { "ECU Temp.", "C", 1, -40, 120, render_ecutmp },
-  { "Oil press.", "Bar", 16, 0, 12, render_oilps },
-  { "Oil temp.", "C", 1, 0, 160, render_oiltmp },
-  { "Fuel press.", "Bar", 32, 0, 7, render_fuelps },
-  { "CLT", "C", 1, -40, 220, render_clt },
-  { "FF content", "%", 2, 0, 100, render_ffcnt },
-  { "FF Temp", "C", 1, -30, 120, render_fftmp },
-  { "Lambda", "λ", 128, 0.7, 1.3, render_lambda },
-  { "Speed", "kmh", 4, 0, 300, render_speed },
-  { "FP delta", "kPa", 1, 100, 500, render_fpdelta },
-  { "Fuel lvll", "%", 1, 0, 100, render_fuellvl },
-  { "Table", "", 1, 0, 1, render_table },
-  { "Lambda tgt.", "λ", 100, 0.7, 1.3, render_lambdatgt },
-  { "AFR Target", "AFR", 10, 10, 20, render_afrtgt },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  { NULL, NULL, 0, 0, 0 },
-  {"cel", "", 1, 0, 0, render_cel}
+  { NULL, NULL, NULL},
+  { "RPM", "RPM", render_rpm },
+  { "MAP", "kPa", render_map },
+  { "TPS", "%", render_tps },
+  { "IAT", "C", render_iat },
+  { "Battery", "V", render_bat },
+  { "Ign. Angle", "deg", render_ign },
+  { "Sec. inj. PW", "ms", render_secinjpw },
+  { "Inj. PW", "ms", render_injpw },
+  { "EGT #1", "C", render_egt1 },
+  { "EGT #2", "C", render_egt2 },
+  { "Knock Level", "V", render_knockv },
+  { "Dwell Time", "ms", render_dwell },
+  { "AFR", "AFR", render_afr },
+  { "Gear", "", render_gear },
+  { "BARO", "kPa", render_baro },
+  { "Analog #1", "V", render_analog1 },
+  { "Analog #2", "V", render_analog2 },
+  { "Analog #3", "V", render_analog3 },
+  { "Analog #4", "V", render_analog4 },
+  { "Inj. DC", "%", render_injdc },
+  { "ECU Temp.", "C", render_ecutmp },
+  { "Oil press.", "Bar", render_oilps },
+  { "Oil temp.", "C", render_oiltmp },
+  { "Fuel press.", "Bar", render_fuelps },
+  { "CLT", "C", render_clt },
+  { "FF content", "%", render_ffcnt },
+  { "FF Temp", "C", render_fftmp },
+  { "Lambda", "λ", render_lambda },
+  { "Speed", "kmh", render_speed },
+  { "FP delta", "kPa", render_fpdelta },
+  { "Fuel lvll", "%", render_fuellvl },
+  { "Table", "", render_table },
+  { "Lambda tgt.", "λ", render_lambdatgt },
+  { "AFR Target", "AFR", render_afrtgt },
+  {"cel", "", render_cel}
 };
 
-void render_d1a() {
-  tft.fillRect(7, 7, 150, 69, ILI9341_BLACK);
-  tft.setCursor(140, 8);
-  tft.setTextSize(1);
-  tft.println(channels[d1a].unit);
-  tft.setCursor(10, 62);
+void render_page() {
+  tft.fillScreen(ILI9341_BLACK);
+  tft.setCursor(10, 10);
+  tft.setTextSize(4);
+  tft.println(channels[page].name);
+  tft.setCursor(280, 210);
   tft.setTextSize(2);
-  tft.println(channels[d1a].name);
-  tft.setTextSize(5);
-}
-
-void render_d1b() {
-  tft.fillRect(167, 7, 150, 69, ILI9341_BLACK);
-  tft.setCursor(300, 8);
-  tft.setTextSize(1);
-  tft.println(channels[d1b].unit);
-  tft.setCursor(170, 62);
-  tft.setTextSize(2);
-  tft.println(channels[d1b].name);
-  tft.setTextSize(5);
-}
-
-void render_d2a() {
-  tft.fillRect(7, 87, 150, 69, ILI9341_BLACK);
-  tft.setCursor(140, 88);
-  tft.setTextSize(1);
-  tft.println(channels[d2a].unit);
-  tft.setCursor(10, 142);
-  tft.setTextSize(2);
-  tft.println(channels[d2a].name);
-  tft.setTextSize(5);
-}
-
-void render_d2b() {
-  tft.fillRect(167, 87, 150, 69, ILI9341_BLACK);
-  tft.setCursor(300, 88);
-  tft.setTextSize(1);
-  tft.println(channels[d2b].unit);
-  tft.setCursor(170, 142);
-  tft.setTextSize(2);
-  tft.println(channels[d2b].name);
-  tft.setTextSize(5);
-}
-
-void render_d3a() {
-  tft.fillRect(7, 167, 150, 69, ILI9341_BLACK);
-  tft.setCursor(140, 168);
-  tft.setTextSize(1);
-  tft.println(channels[d3a].unit);
-  tft.setCursor(10, 222);
-  tft.setTextSize(2);
-  tft.println(channels[d3a].name);
-  tft.setTextSize(5);
-}
-
-void render_d3b() {
-  tft.fillRect(167, 167, 150, 69, ILI9341_BLACK);
-  tft.setCursor(300, 168);
-  tft.setTextSize(1);
-  tft.println(channels[d3b].unit);
-  tft.setCursor(170, 222);
-  tft.setTextSize(2);
-  tft.println(channels[d3b].name);
-  tft.setTextSize(5);
+  tft.println(channels[page].unit);
+  tft.setTextSize(10);
 }
 
 void setup() {
-  Serial.begin(19200);
-  Serial1.begin(19200);
-
+  
   memset(&values, 0, sizeof(values));
 
   tft.begin();
   if (!ts.begin()) {
-    Serial.println("Couldn't start touchscreen controller");
     while (1);
   }
-  Serial.println("Touchscreen started");
 
   tft.setRotation(1);
-  tft.fillScreen(ILI9341_BLACK);
-
-  tft.drawRect(5, 5, 155, 75, ILI9341_WHITE); //1a
-  tft.drawRect(165, 5, 155, 75, ILI9341_WHITE); //1b
-  tft.drawRect(5, 85, 155, 75, ILI9341_WHITE); //2a
-  tft.drawRect(165, 85, 155, 75, ILI9341_WHITE); //2b
-  tft.drawRect(5, 165, 155, 75, ILI9341_WHITE); //3a
-  tft.drawRect(165, 165, 155, 75, ILI9341_WHITE); //3b
-
   tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
-  render_d1a();
-  render_d1b();
-  render_d2a();
-  render_d2b();
-  render_d3a();
-  render_d3b();
+  render_page();
+  
+  Serial.begin(19200);
+  Serial1.begin(19200);
 
 }
-
-void DEBUG() {
-  //put testing stuff here
-}
-
 
 void loop() {
   TS_Point p = ts.getPoint();
@@ -708,93 +404,29 @@ void loop() {
       for (;;) {
         checksum = frame.channel + frame.magic + ((frame.value & 0xff00) >> 8) + (frame.value & 0x00ff) % 255;
         if (checksum == frame.checksum) {
-          break;
+          values[frame.channel] = frame.value;
         }
         if (frame.magic != 0xa3) {
           memmove(&frame, ((uint8_t *)&frame) + 1, sizeof(emu_frame) - 1);
           frame.checksum = (uint8_t)Serial1.read();
         } else {
+          values[frame.channel] = frame.value;
           break;
         }
       }
-
-      values[frame.channel] = frame.value;
       
-      //1a
-      tft.setCursor(20, 15);
-      channels[d1a].render();
-      //1b
-      tft.setCursor(180, 15);
-      channels[d1b].render();
-      //2a
-      tft.setCursor(20, 95);
-      channels[d2a].render();
-      //2b
-      tft.setCursor(180, 95);
-      channels[d2b].render();
-      //3a
-      tft.setCursor(20, 175);
-      channels[d3a].render();
-      //3b
-      tft.setCursor(180, 175);
-      channels[d3b].render();
+      tft.setCursor(50, 100);
+      channels[page].render();
+
       if (ts.touched()) {
         TS_Point p = ts.getPoint();
-        while (ts.touched()) {
-          p = ts.getPoint();
+        page++;
+        if (page >= 35) {
+          page = 1;
         }
-        if (p.x < 1200 && p.y < 1800) {
-          Serial.println("1a pushed");
-          d1a++;
-          if (d1a >= 35) {
-            d1a = 1;
-          }
-          render_d1a();
-          while (!ts.bufferEmpty()) ts.getPoint();
-        }
-        if (p.x < 1200 && p.y > 2200) {
-          Serial.println("1b pushed");
-          d1b++;
-          if (d1b >= 35) {
-            d1b = 1;
-          }
-          render_d1b();
-          while (!ts.bufferEmpty()) ts.getPoint();
-        }
-        if (p.x > 1500 && p.x < 2500 && p.y < 1900) {
-          Serial.println("2a pushed");
-          d2a++;
-          if (d2a >= 35) {
-            d2a = 1;
-          }
-          render_d2a();
-        }
-        if (p.x > 1500 && p.x < 2500 && p  .y > 2000) {
-          Serial.println("2b pushed");
-          d2b++;
-          if (d2b >= 35) {
-            d2b++;
-          }
-          render_d2b();
-        }
-        if (p.x > 2800 && p.y < 1800) {
-          Serial.println("3a pushed");
-          d3a++;
-          if (d3a >= 35) {
-            d3a++;
-          }
-          render_d3a();
-        }
-        if (p.x > 2800 && p.y > 1800) {
-          Serial.println("3b pushed");
-          d3b++;
-          if (d3b >= 35) {
-            d3b++;
-          }
-          render_d3b();
-
-        }
+        render_page();
       }
+      
     }
   }
 }
