@@ -6,11 +6,16 @@
 #define TS_MAXX 100
 #define TS_MINY 100
 #define TS_MAXY 3750
-
+#define EMU_FRAME_MAGIC 0xa3
+#if defined (__AVR_ATmega32U4__) || defined(ARDUINO_SAMD_FEATHER_M0) || defined (__AVR_ATmega328P__)
+#define STMPE_CS 6
+#define TFT_CS   9
+#define TFT_DC   10
+#define SD_CS    5
+#endif
 #define be16toh(s) \
   ((uint16_t)(((s & 0xff00) >> 8) | ((s & 0x00ff) << 8)))
 
-#define EMU_FRAME_MAGIC 0xa3
 #pragma pack(push)
 #pragma pack(1)
 
@@ -24,13 +29,6 @@ typedef struct _emu_frame {
 emu_frame frame;
 
 #pragma pack(pop)
-
-#if defined (__AVR_ATmega32U4__) || defined(ARDUINO_SAMD_FEATHER_M0) || defined (__AVR_ATmega328P__)
-#define STMPE_CS 6
-#define TFT_CS   9
-#define TFT_DC   10
-#define SD_CS    5
-#endif
 
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 Adafruit_STMPE610 ts = Adafruit_STMPE610(STMPE_CS);
@@ -73,10 +71,10 @@ void render_iat() {
 
 uint16_t bat;
 void render_bat() {
-  if (bat != values[5] && be16toh(bat) <= 20 && be16toh(bat) >= 8) {
+  //if (bat != values[5] && be16toh(bat) <= 20 && be16toh(bat) >= 8) {
     tft.println(be16toh(values[5]) / 37);
-    bat = values[5];
-  }
+  //  bat = values[5];
+  //}
 }
 
 uint16_t ign;
@@ -389,7 +387,6 @@ void setup() {
   Serial1.begin(19200);
 
 }
-
 void loop() {
   TS_Point p = ts.getPoint();
   p.x = map(p.x, TS_MINX, TS_MAXX, 0, tft.width());
@@ -402,31 +399,36 @@ void loop() {
     while ((readlen = Serial1.readBytes((char *)&frame, sizeof(frame))) != 0) {
       uint8_t checksum;
       for (;;) {
-        checksum = frame.channel + frame.magic + ((frame.value & 0xff00) >> 8) + (frame.value & 0x00ff) % 255;
+        checksum = frame.channel + frame.magic + ((frame.value & 0xff00) >> 8) + (frame.value & 0x00ff) % 254;
         if (checksum == frame.checksum) {
-          values[frame.channel] = frame.value;
-        }
-        if (frame.magic != 0xa3) {
-          memmove(&frame, ((uint8_t *)&frame) + 1, sizeof(emu_frame) - 1);
-          frame.checksum = (uint8_t)Serial1.read();
-        } else {
-          values[frame.channel] = frame.value;
           break;
         }
+        if (frame.magic == 0xa3) {
+          break;
+        } else {
+          memmove(&frame, ((uint8_t *)&frame) + 1, sizeof(emu_frame) - 1);
+          frame.checksum = (uint8_t)Serial1.read();
+          Serial.println("frame mismatch");
+        }
+      }
+      
+      if (frame.channel == page) {
+        values[frame.channel] = frame.value;
       }
       
       tft.setCursor(50, 100);
       channels[page].render();
 
       if (ts.touched()) {
+        Serial1.end();
         TS_Point p = ts.getPoint();
         page++;
         if (page >= 35) {
           page = 1;
         }
         render_page();
-      }
-      
+        Serial1.begin(19200);
+      }    
     }
   }
 }
