@@ -374,24 +374,18 @@ void render_page() {
 void serial_read() {
     size_t readlen;
     emu_frame raw;
+    size_t available = Serial1.available();
     noInterrupts();
-    if (Serial1.available() >= 5) {
-        while ((readlen = Serial1.readBytes((char *)&frame, sizeof(frame))) != 0) {
-        uint8_t checksum;
-        for (;;) {
-          checksum = frame.channel + frame.magic + ((frame.value & 0xff00) >> 8) + (frame.value & 0x00ff) % 254;
-          if (checksum == frame.checksum) {
-            break;
-          }
-          if (frame.magic == 0xa3) {
-            break;
-          } else {
+    while (available--) {
+        ((uint8_t *)frame)[4] = Serial1.read();
+        if (frame.magic == 0xa3) {
+            uint8_t checksum = frame.channel + frame.magic + ((frame.value & 0xff00) >> 8) + (frame.value & 0x00ff) & 0xff;
+            if (frame.checksum == checksum) {
+                values[frame.channel] = frame.value;
+            }
+        } else {
             memmove(&frame, ((uint8_t *)&frame) + 1, sizeof(emu_frame) - 1);
             frame.checksum = (uint8_t)Serial1.read();
-            Serial.println("frame mismatch");
-          }
-        }
-        values[frame.channel] = frame.value;
         }
     }
     interrupts();
