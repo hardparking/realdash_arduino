@@ -7,6 +7,7 @@
 #define TS_MINY 100
 #define TS_MAXY 3750
 #define EMU_FRAME_MAGIC 0xa3
+#define interuptPin 16
 #if defined (__AVR_ATmega32U4__) || defined(ARDUINO_SAMD_FEATHER_M0) || defined (__AVR_ATmega328P__)
 #define STMPE_CS 6
 #define TFT_CS   9
@@ -385,6 +386,8 @@ void setup() {
   
   Serial.begin(19200);
   Serial1.begin(19200);
+  attachInterrupt(digitalPinToInterrupt(interruptPin), serial_read, HIGH);
+
 
 }
 void loop() {
@@ -392,43 +395,42 @@ void loop() {
   p.x = map(p.x, TS_MINX, TS_MAXX, 0, tft.width());
   p.y = map(p.y, TS_MINY, TS_MAXY, 0, tft.height());
 
-  size_t readlen;
-  emu_frame raw;
-
-  if (Serial1.available() >= 5) {
-    while ((readlen = Serial1.readBytes((char *)&frame, sizeof(frame))) != 0) {
-      uint8_t checksum;
-      for (;;) {
-        checksum = frame.channel + frame.magic + ((frame.value & 0xff00) >> 8) + (frame.value & 0x00ff) % 254;
-        if (checksum == frame.checksum) {
-          break;
-        }
-        if (frame.magic == 0xa3) {
-          break;
-        } else {
-          memmove(&frame, ((uint8_t *)&frame) + 1, sizeof(emu_frame) - 1);
-          frame.checksum = (uint8_t)Serial1.read();
-          Serial.println("frame mismatch");
-        }
-      }
       
-      if (frame.channel == page) {
-        values[frame.channel] = frame.value;
-      }
-      
-      tft.setCursor(50, 100);
-      channels[page].render();
+    tft.setCursor(50, 100);
+    channels[page].render();
 
-      if (ts.touched()) {
-        Serial1.end();
+    if (ts.touched()) {
         TS_Point p = ts.getPoint();
         page++;
         if (page >= 35) {
-          page = 1;
+            page = 1;
         }
         render_page();
-        Serial1.begin(19200);
       }    
     }
   }
+}
+
+void serial_read() {
+    size_t readlen;
+    emu_frame raw;
+    if (Serial1.available() >= 5) {
+        while ((readlen = Serial1.readBytes((char *)&frame, sizeof(frame))) != 0) {
+	      uint8_t checksum;
+	      for (;;) {
+	        checksum = frame.channel + frame.magic + ((frame.value & 0xff00) >> 8) + (frame.value & 0x00ff) % 254;
+	        if (checksum == frame.checksum) {
+	          break;
+	        }
+	        if (frame.magic == 0xa3) {
+	          break;
+	        } else {
+	          memmove(&frame, ((uint8_t *)&frame) + 1, sizeof(emu_frame) - 1);
+	          frame.checksum = (uint8_t)Serial1.read();
+	          Serial.println("frame mismatch");
+	        }
+	      }
+	      values[frame.channel] = frame.value;
+        }
+    }
 }
