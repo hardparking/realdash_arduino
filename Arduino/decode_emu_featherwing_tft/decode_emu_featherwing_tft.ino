@@ -377,11 +377,10 @@ void render_page() {
   tft.setTextSize(10);
 }
 
-
 void serial_read() {
-    size_t available = Serial1.available();
+    size_t available;
     noInterrupts();
-    while (available--) {
+    for (available = Serial1.available(); available--;) {
         memmove(&frame, ((uint8_t *)&frame) + 1, sizeof(frame) - 1);
         frame.bytes[4] = Serial1.read();
         if (frame.magic == 0xa3) {
@@ -395,7 +394,6 @@ void serial_read() {
     }
     interrupts();
 }
-
 
 void setup() {
   
