@@ -20,11 +20,17 @@
 #pragma pack(push)
 #pragma pack(1)
 
+
 typedef struct _emu_frame {
-  uint8_t channel,
-          magic;
-  uint16_t value;
-  uint8_t checksum;
+    union {
+        struct {
+            uint8_t channel,
+                    magic;
+            uint16_t value;
+            uint8_t checksum;
+        };
+        uint8_t bytes[5];
+    };
 } emu_frame;
 
 emu_frame frame;
@@ -72,10 +78,10 @@ void render_iat() {
 
 uint16_t bat;
 void render_bat() {
-  //if (bat != values[5] && be16toh(bat) <= 20 && be16toh(bat) >= 8) {
+  if (bat != values[5] && be16toh(bat) <= 20 && be16toh(bat) >= 8) {
     tft.println(be16toh(values[5]) / 37);
-  //  bat = values[5];
-  //}
+    bat = values[5];
+  }
 }
 
 uint16_t ign;
@@ -371,25 +377,26 @@ void render_page() {
   tft.setTextSize(10);
 }
 
+
 void serial_read() {
-    size_t readlen;
     emu_frame raw;
     size_t available = Serial1.available();
     noInterrupts();
     while (available--) {
-        ((uint8_t *)frame)[4] = Serial1.read();
+        memmove(&frame, ((uint8_t *)&frame) + 1, sizeof(frame) - 1);
+        frame.bytes[4] = Serial1.read();
         if (frame.magic == 0xa3) {
             uint8_t checksum = frame.channel + frame.magic + ((frame.value & 0xff00) >> 8) + (frame.value & 0x00ff) & 0xff;
+            
             if (frame.checksum == checksum) {
-                values[frame.channel] = frame.value;
+                values[frame.channel] = be16toh(frame.value);
+                memset(&frame, 0, sizeof(frame));
             }
-        } else {
-            memmove(&frame, ((uint8_t *)&frame) + 1, sizeof(emu_frame) - 1);
-            frame.checksum = (uint8_t)Serial1.read();
         }
     }
     interrupts();
 }
+
 
 void setup() {
   
