@@ -379,7 +379,6 @@ void render_page() {
 
 
 void serial_read() {
-    emu_frame raw;
     size_t available = Serial1.available();
     noInterrupts();
     while (available--) {
