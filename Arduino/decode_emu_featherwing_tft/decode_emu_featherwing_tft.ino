@@ -2,6 +2,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_ILI9341.h>
 #include <Adafruit_STMPE610.h>
+#include "wiring_private.h"
 #define TS_MINX 3800
 #define TS_MAXX 100
 #define TS_MINY 100
@@ -22,15 +23,15 @@
 
 
 typedef struct _emu_frame {
-    union {
-        struct {
-            uint8_t channel,
-                    magic;
-            uint16_t value;
-            uint8_t checksum;
-        };
-        uint8_t bytes[5];
+  union {
+    struct {
+      uint8_t channel,
+              magic;
+      uint16_t value;
+      uint8_t checksum;
     };
+    uint8_t bytes[5];
+  };
 } emu_frame;
 
 emu_frame frame;
@@ -377,26 +378,46 @@ void render_page() {
   tft.setTextSize(10);
 }
 
-void serial_read() {
-    size_t available;
-    noInterrupts();
-    for (available = Serial1.available(); available--;) {
-        memmove(&frame, ((uint8_t *)&frame) + 1, sizeof(frame) - 1);
-        frame.bytes[4] = Serial1.read();
-        if (frame.magic == 0xa3) {
-            uint8_t checksum = frame.channel + frame.magic + ((frame.value & 0xff00) >> 8) + (frame.value & 0x00ff) & 0xff;
-            
-            if (frame.checksum == checksum) {
-                values[frame.channel] = be16toh(frame.value);
-                memset(&frame, 0, sizeof(frame));
-            }
-        }
-    }
-    interrupts();
+
+
+void SERCOM0_Handler() {
+  Serial1.IrqHandler();
 }
 
+void Uart::IrqHandler() {
+  if (sercom->availableDataUART()) {
+    rxBuffer.store_char(sercom->readDataUART());
+  }
+
+  if (sercom->isUARTError()) {
+    sercom->acknowledgeUARTError();
+    // TODO: if (sercom->isBufferOverflowErrorUART()) ....
+    // TODO: if (sercom->isFrameErrorUART()) ....
+    // TODO: if (sercom->isParityErrorUART()) ....
+    sercom->clearStatusUART();
+  }
+
+  if (rxBuffer.isFull()) {
+    size_t available;
+    Serial.println("Full Buffer!!");
+      for (available = Serial1.available(); available--;) {
+      memmove(&frame, ((uint8_t *)&frame) + 1, sizeof(frame) - 1);
+      //frame.bytes[4] = rxBuffer.read_char();
+      frame.bytes[4] = Serial1.read();
+      if (frame.magic == 0xa3) {
+        uint8_t checksum = frame.channel + frame.magic + ((frame.value & 0xff00) >> 8) + (frame.value & 0x00ff) & 0xff;
+        if (frame.checksum == checksum) {
+          values[frame.channel] = be16toh(frame.value);
+          memset(&frame, 0, sizeof(frame));
+        }
+      }
+    }
+  }
+}
+
+
 void setup() {
-  
+
   memset(&values, 0, sizeof(values));
 
   tft.begin();
@@ -407,10 +428,9 @@ void setup() {
   tft.setRotation(1);
   tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
   render_page();
-  
+
   Serial.begin(19200);
   Serial1.begin(19200);
-  attachInterrupt(digitalPinToInterrupt(interruptPin), serial_read, HIGH);
 
 }
 
@@ -419,16 +439,16 @@ void loop() {
   p.x = map(p.x, TS_MINX, TS_MAXX, 0, tft.width());
   p.y = map(p.y, TS_MINY, TS_MAXY, 0, tft.height());
 
-      
-    tft.setCursor(50, 100);
-    channels[page].render();
 
-    if (ts.touched()) {
-        TS_Point p = ts.getPoint();
-        page++;
-        if (page >= 35) {
-            page = 1;
-        }
-        render_page();
-      }    
+  tft.setCursor(50, 100);
+  channels[page].render();
+
+  if (ts.touched()) {
+    TS_Point p = ts.getPoint();
+    page++;
+    if (page >= 35) {
+      page = 1;
     }
+    render_page();
+  }
+}
