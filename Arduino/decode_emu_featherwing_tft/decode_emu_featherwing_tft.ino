@@ -45,284 +45,157 @@ int checksum = 0;
 int page = 1;
 uint16_t values[35];
 
-uint16_t rpm;
+char printbuf[10];
+
 void render_rpm() {
-  if (rpm != values[1] && be16toh(rpm) <= 9000 && be16toh(rpm) >= 0) {
-    tft.println(be16toh(values[1]));
-    rpm = values[1];
-  }
+  sprintf(printbuf, "%4d", values[1]);
+  tft.println(printbuf);
 }
 
-uint16_t mapv;
 void render_map() {
-  if (mapv != values[2] && be16toh(mapv) <= 400 && be16toh(mapv) >= 0) {
-    tft.println(be16toh(values[2]));
-    mapv = values[2];
-  }
+  sprintf(printbuf, "%4d", values[2]);
+  tft.println(printbuf);
 }
 
-uint16_t tps;
 void render_tps() {
-  if (tps != values[3] && be16toh(tps) <= 100 && be16toh(tps) >= 0) {
-    tft.println(be16toh(values[3]));
-    tps = values[3];
-  }
+  sprintf(printbuf, "%4d", values[3]);
+  tft.println(printbuf);
 }
 
-uint16_t iat;
 void render_iat() {
-  if (iat != values[4] && be16toh(iat) <= 120 && be16toh(iat) >= -140 ) {
-    tft.println(be16toh(values[4l]));
-    iat = values[4];
-  }
+  sprintf(printbuf, "%4d", values[4]);
+  tft.println(printbuf);
 }
 
-uint16_t bat;
+
 void render_bat() {
-  if (bat != values[5] && be16toh(bat) <= 20 && be16toh(bat) >= 8) {
-    tft.println(be16toh(values[5]) / 37);
-    bat = values[5];
-  }
+  tft.println((float)values[5] / 37, 1);
 }
 
-uint16_t ign;
 void render_ign() {
-  if (ign != values[6] && be16toh(ign) <= 60 && be16toh(ign) >= -20) {
-    tft.println(be16toh(values[6]) / 2);
-    ign = values[6];
-  }
+  tft.println(values[6] / 2);
 }
 
-uint16_t secinjpw;
 void render_secinjpw() {
-  if (secinjpw != values[7] && be16toh(secinjpw) <= 25 && be16toh(secinjpw) >= 0 ) {
-    tft.println(be16toh(values[7]) / 62);
-    secinjpw = values[7];
-  }
+  tft.println(values[7] / 62);
 }
 
-uint16_t injpw;
 void render_injpw() {
-  if (injpw != values[8] && be16toh(injpw) <= 25 && be16toh(injpw) >= 0 ) {
-    tft.println(be16toh(values[8]) / 62);
-    injpw = values[8];
-  }
+  tft.println(values[8] / 62);
 }
 
-uint16_t egt1;
 void render_egt1() {
-  if (egt1 != values[9] && be16toh(egt1) <= 1100 && be16toh(egt1) >= 0) {
-    tft.println(be16toh(values[9]));
-    egt1 = values[9];
-  }
+  tft.println(values[9]);
 }
 
-uint16_t egt2;
 void render_egt2() {
-  if (egt2 != values[10] && be16toh(egt2) <= 1100 && be16toh(egt2) >= 0) {
-    tft.println(be16toh(values[10]));
-    egt2 = values[10];
-  }
+  tft.println(values[10]);
+
 }
 
-uint16_t knockv;
 void render_knockv() {
-  if (knockv != values[11] && be16toh(knockv) <= 5 && be16toh(knockv) >= 0) {
-    tft.println(be16toh(values[11]) / 51);
-    knockv = values[11];
-  }
+  tft.println((float)values[11] / 51, 1);
+
 }
 
-uint16_t dwell;
 void render_dwell() {
-  if (dwell != values[12] && be16toh(dwell) <= 10 && be16toh(dwell) >= 0 ) {
-    tft.println(be16toh(values[12]) / 20);
-    dwell = values[12];
-  }
+  tft.println(values[12] / 20);
 }
 
-uint16_t afr;
 void render_afr() {
-  if (afr != values[13] && be16toh(afr) <= 20 && be16toh(afr) >= 0) {
-    tft.println(be16toh(values[13]) / 10);
-    afr = values[13];
-  }
+  tft.println((float)values[12] / 10, 1);
 }
 
-uint16_t gear;
 void render_gear() {
-  if (gear != values[14] && be16toh(gear) <= 6 && be16toh(gear) >= 0) {
-    tft.println(be16toh(values[14]));
-    gear = values[14];
-  }
+  tft.println(values[14]);
 }
 
-uint16_t baro;
 void render_baro() {
-  if (baro != values[15] && be16toh(baro) <= 120 && be16toh(baro) >= 50) {
-    tft.println(be16toh(values[15]));
-    baro = values[15];
-  }
+  tft.println(values[15]);
+
 }
 
-uint16_t analog1;
 void render_analog1() {
-  if (analog1 != values[16] && be16toh(analog1) <= 5 && be16toh(analog1) >= 0) {
-    tft.println(be16toh(values[16]) / 51);
-    analog1 = values[16];
-  }
+  tft.println((float)values[16] / 51, 1);
 }
 
-uint16_t analog2;
 void render_analog2() {
-  if (analog2 != values[17] && be16toh(analog2) <= 5 && be16toh(analog2) >= 0) {
-    tft.println(be16toh(values[17]) / 51);
-    analog2 = values[17];
-  }
+  tft.println((float)values[17] / 51, 1);
 }
 
-uint16_t analog3;
 void render_analog3() {
-  if (analog3 != values[18] && be16toh(analog3) <= 5 && be16toh(analog3) >= 0) {
-    tft.println(be16toh(values[18]) / 51);
-    analog3 = values[18];
-  }
+  tft.println((float)values[18] / 51, 1);
 }
 
-uint16_t analog4;
 void render_analog4() {
-  if (analog4 != values[19] && be16toh(analog4) <= 5 && be16toh(analog4) >= 0) {
-    tft.println(be16toh(values[19]) / 51);
-    analog3 = values[19];
-  }
+  tft.println((float)values[19] / 51, 1);
 }
 
-uint16_t injdc;
 void render_injdc() {
-  if (injdc != values[20] && be16toh(injdc) <= 100 && be16toh(injdc) >= 0) {
-    tft.println(be16toh(values[20]) / 2);
-    injdc = values[20];
-  }
+  tft.println(values[20] / 2);
 }
 
-uint16_t ecutmp;
 void render_ecutmp() {
-  if (ecutmp != values[21] && be16toh(ecutmp) <= 120 && be16toh(ecutmp) >= -40) {
-    tft.println(be16toh(values[21]));
-    ecutmp = values[21];
-  }
+  tft.println(values[21]);
+
 }
 
-uint16_t oilps;
 void render_oilps() {
-  if (oilps != values[22] && be16toh(oilps) <= 16 && be16toh(oilps) >= 0) {
-    tft.println(be16toh(values[22]) / 16);
-    oilps = values[22];
-  }
+  tft.println(values[22] / 16);
 }
 
-uint16_t oiltmp;
 void render_oiltmp() {
-  if (oiltmp != values[23] && be16toh(oiltmp) <= 160 && be16toh(oiltmp) >= 0) {
-    tft.println(be16toh(values[23]));
-    oiltmp = values[23];
-  }
+  tft.println(values[23]);
+
 }
 
-uint16_t fuelps;
 void render_fuelps() {
-  if (fuelps != values[24] && be16toh(fuelps) <= 32 && be16toh(fuelps) >= 0) {
-    tft.println(be16toh(values[24]));
-    fuelps = values[24];
-  }
+  tft.println(values[24]);
+
 }
 
-uint16_t clt;
 void render_clt() {
-  if (clt != values[25] && be16toh(clt) <= 220 && be16toh(clt) >= -40) {
-    tft.println(be16toh(values[25]) / 32);
-    fuelps = values[25];
-  }
+  tft.println(values[25] / 32);
 }
 
-uint16_t ffcnt;
 void render_ffcnt() {
-  if (ffcnt != values[26] && be16toh(ffcnt) <= 100 && be16toh(ffcnt) >= 0) {
-    tft.println(be16toh(values[26]) / 2);
-    ffcnt = values[26];
-  }
+  tft.println(values[26] / 2);
 }
 
-uint16_t fftmp;
 void render_fftmp() {
-  if (fftmp != values[27] && be16toh(fftmp) <= 120 && be16toh(fftmp) >= -30) {
-    tft.println(be16toh(values[27]));
-    fftmp = values[27];
-  }
+  tft.println(values[27]);
 }
 
-uint16_t lambda;
 void render_lambda() {
-  if (lambda != values[28] && be16toh(lambda) <= 1.3 && be16toh(lambda) >= 0.7) {
-    tft.println(be16toh(values[28]) / 128);
-    lambda = values[28];
-  }
+  tft.println((float)values[28] / 128, 1);
 }
 
-uint16_t speedd;
 void render_speed() {
-  if (speedd != values[29] && be16toh(speedd) <= 300 && be16toh(speedd) >= 0) {
-    tft.println(be16toh(values[29]) / 4);
-    speedd = values[29];
-  }
+  tft.println(values[29] / 4);
 }
 
-uint16_t fpdelta;
 void render_fpdelta() {
-  if (speedd != values[30] && be16toh(fpdelta) <= 500 && be16toh(fpdelta) >= 100) {
-    tft.println(be16toh(values[30]) / 4);
-    speedd = values[30];
-  }
+  tft.println(values[30] / 4);
 }
 
-uint16_t fuellvl;
 void render_fuellvl() {
-  if (fuellvl != values[31] && be16toh(fuellvl) <= 100 && be16toh(fuellvl) >= 0) {
-    tft.println(be16toh(values[31]));
-    fuellvl = values[31];
-  }
+  tft.println(values[31]);
 }
 
-uint16_t table;
 void render_table() {
-  if (table != values[32] && be16toh(table) <= 1 && be16toh(table) >= 0) {
-    tft.println(be16toh(values[32]));
-    table = values[32];
-  }
+  tft.println(values[32]);
 }
 
-uint16_t lambdatgt;
 void render_lambdatgt() {
-  if (lambdatgt != values[33] && be16toh(lambdatgt) <= 1.3 && be16toh(lambdatgt) >= 0.7) {
-    tft.println(be16toh(values[33]) / 100);
-    table = values[33];
-  }
+  tft.println((float)values[33] / 100, 1);
 }
 
-uint16_t afrtgt;
 void render_afrtgt() {
-  if (afrtgt != values[34] && be16toh(afrtgt) <= 20 && be16toh(afrtgt) >= 10) {
-    tft.println(be16toh(values[34]) / 10);
-    afrtgt = values[34];
-  }
+  tft.println((float)values[34] / 10, 1);
 }
 
-uint16_t cel;
 void render_cel() {
-  if (afr != values[255] && be16toh(cel) <= 1 && be16toh(cel) >= 0) {
-    tft.println(be16toh(values[255]));
-    cel = values[255];
-  }
+  tft.println(be16toh(values[255]));
 }
 
 struct {
@@ -336,12 +209,11 @@ struct {
   { "IAT", "C", render_iat },
   { "Battery", "V", render_bat },
   { "Ign. Angle", "deg", render_ign },
-  { "Sec. inj. PW", "ms", render_secinjpw },
   { "Inj. PW", "ms", render_injpw },
   { "EGT #1", "C", render_egt1 },
   { "EGT #2", "C", render_egt2 },
   { "Knock Level", "V", render_knockv },
-  { "Dwell Time", "ms", render_dwell },
+  { "Dwell", "ms", render_dwell },
   { "AFR", "AFR", render_afr },
   { "Gear", "", render_gear },
   { "BARO", "kPa", render_baro },
@@ -379,6 +251,23 @@ void render_page() {
 }
 
 
+void setup() {
+
+  memset(&values, 0, sizeof(values));
+
+  tft.begin();
+  if (!ts.begin()) {
+    while (1);
+  }
+
+  tft.setRotation(1);
+  tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
+  render_page();
+
+  Serial.begin(19200);
+  Serial1.begin(19200);
+
+}
 
 void SERCOM0_Handler() {
   Serial1.IrqHandler();
@@ -399,10 +288,8 @@ void Uart::IrqHandler() {
 
   if (rxBuffer.isFull()) {
     size_t available;
-    Serial.println("Full Buffer!!");
-      for (available = Serial1.available(); available--;) {
+    for (available = Serial1.available(); available--;) {
       memmove(&frame, ((uint8_t *)&frame) + 1, sizeof(frame) - 1);
-      //frame.bytes[4] = rxBuffer.read_char();
       frame.bytes[4] = Serial1.read();
       if (frame.magic == 0xa3) {
         uint8_t checksum = frame.channel + frame.magic + ((frame.value & 0xff00) >> 8) + (frame.value & 0x00ff) & 0xff;
@@ -415,30 +302,10 @@ void Uart::IrqHandler() {
   }
 }
 
-
-void setup() {
-
-  memset(&values, 0, sizeof(values));
-
-  tft.begin();
-  if (!ts.begin()) {
-    while (1);
-  }
-
-  tft.setRotation(1);
-  tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
-  render_page();
-
-  Serial.begin(19200);
-  Serial1.begin(19200);
-
-}
-
 void loop() {
   TS_Point p = ts.getPoint();
   p.x = map(p.x, TS_MINX, TS_MAXX, 0, tft.width());
   p.y = map(p.y, TS_MINY, TS_MAXY, 0, tft.height());
-
 
   tft.setCursor(50, 100);
   channels[page].render();
