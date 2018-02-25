@@ -15,6 +15,13 @@
 #define TFT_DC   10
 #define SD_CS    5
 #endif
+#ifdef ESP8266
+   #define STMPE_CS 16
+   #define TFT_CS   0
+   #define TFT_DC   15
+   #define SD_CS    2
+#endif
+
 #define be16toh(s) \
   ((uint16_t)(((s & 0xff00) >> 8) | ((s & 0x00ff) << 8)))
 
