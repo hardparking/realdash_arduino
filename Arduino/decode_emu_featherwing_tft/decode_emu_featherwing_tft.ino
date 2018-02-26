@@ -2,7 +2,13 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_ILI9341.h>
 #include <Adafruit_STMPE610.h>
+#include <SPI.h>
+#include <WiFi101.h>
 #include "wiring_private.h"
+#define SECRET_SSID "ECUMASTERS"
+#define SECRET_PASS "ecumastersemu"
+char ssid[] = SECRET_SSID;
+char pass[] = SECRET_PASS;
 #define TS_MINX 3800
 #define TS_MAXX 100
 #define TS_MINY 100
@@ -47,6 +53,10 @@ emu_frame frame;
 
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 Adafruit_STMPE610 ts = Adafruit_STMPE610(STMPE_CS);
+WiFiServer server(8080);
+int status = WL_IDLE_STATUS;
+
+
 
 int checksum = 0;
 int page = 1;
@@ -259,6 +269,8 @@ void render_page() {
 
 
 void setup() {
+  WiFi.setPins(8,7,4,2);
+
 
   memset(&values, 0, sizeof(values));
 
@@ -273,6 +285,12 @@ void setup() {
 
   Serial.begin(19200);
   Serial1.begin(19200);
+  status = WiFi.beginAP(ssid);
+  if (status != WL_AP_LISTENING) {
+    Serial.println("Creating access point failed");
+    // don't continue
+    while (true);
+  }
 
 }
 
@@ -302,6 +320,7 @@ void Uart::IrqHandler() {
         uint8_t checksum = frame.channel + frame.magic + ((frame.value & 0xff00) >> 8) + (frame.value & 0x00ff) & 0xff;
         if (frame.checksum == checksum) {
           values[frame.channel] = be16toh(frame.value);
+          client.print(frame);
           memset(&frame, 0, sizeof(frame));
         }
       }
