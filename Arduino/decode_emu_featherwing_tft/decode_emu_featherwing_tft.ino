@@ -315,7 +315,7 @@ void Uart::IrqHandler() {
     // TODO: if (sercom->isParityErrorUART()) ....
     sercom->clearStatusUART();
   }
-  
+  WiFiClient client = server.available();
   if (rxBuffer.isFull()) {
     size_t available;
     for (available = Serial1.available(); available--;) {
@@ -325,7 +325,7 @@ void Uart::IrqHandler() {
         uint8_t checksum = frame.channel + frame.magic + ((frame.value & 0xff00) >> 8) + (frame.value & 0x00ff) & 0xff;
         if (frame.checksum == checksum) {
           values[frame.channel] = be16toh(frame.value);
-          WiFiClient client = server.available();
+          
           client.write((byte*)&frame, sizeof(frame));
           memset(&frame, 0, sizeof(frame));
         }
