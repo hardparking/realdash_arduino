@@ -260,7 +260,7 @@ struct {
 
 void render_page() {
   tft.setFont(&FreeSerifBoldItalic12pt7b);
-  tft.fillScreen(ILI9341_RED);
+  tft.fillScreen(ILI9341_BLACK);
   tft.setCursor(10, 20);
   tft.setTextSize(1);
   tft.println(channels[page].name);
@@ -273,7 +273,6 @@ void render_page() {
 
 void setup() {
   WiFi.setPins(8,7,4,2);
-  
 
   memset(&values, 0, sizeof(values));
 
@@ -284,23 +283,20 @@ void setup() {
 
 
   tft.setRotation(1);
-  tft.setTextColor(ILI9341_BLACK, ILI9341_RED);
+  tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
   
   render_page();
 
   Serial.begin(19200);
   Serial1.begin(19200);
-  IPAddress ip(0, 0, 0, 0);    
 
-  WiFi.config(ip); 
   status = WiFi.beginAP(ssid, pass);
-  if ( status != WL_CONNECTED) { 
+  if ( status != WL_AP_LISTENING) { 
     Serial.println("Couldn't get a wifi connection");
     while(true);
   }
-  
   server.begin();
-
+  
 }
 
 void SERCOM0_Handler() {
@@ -325,12 +321,12 @@ void Uart::IrqHandler() {
     for (available = Serial1.available(); available--;) {
       memmove(&frame, ((uint8_t *)&frame) + 1, sizeof(frame) - 1);
       frame.bytes[4] = Serial1.read();
-      WiFiClient client = server.available();
-      client.write(frame.bytes[4]);
       if (frame.magic == 0xa3) {
         uint8_t checksum = frame.channel + frame.magic + ((frame.value & 0xff00) >> 8) + (frame.value & 0x00ff) & 0xff;
         if (frame.checksum == checksum) {
           values[frame.channel] = be16toh(frame.value);
+          WiFiClient client = server.available();
+          client.write((byte*)&frame, sizeof(frame));
           memset(&frame, 0, sizeof(frame));
         }
       }
