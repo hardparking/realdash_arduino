@@ -22,10 +22,10 @@ char pass[] = SECRET_PASS;
 #define SD_CS    5
 #endif
 #ifdef ESP8266
-   #define STMPE_CS 16
-   #define TFT_CS   0
-   #define TFT_DC   15
-   #define SD_CS    2
+#define STMPE_CS 16
+#define TFT_CS   0
+#define TFT_DC   15
+#define SD_CS    2
 #endif
 
 #define be16toh(s) \
@@ -55,7 +55,7 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 Adafruit_STMPE610 ts = Adafruit_STMPE610(STMPE_CS);
 WiFiServer server(8080);
 int status = WL_IDLE_STATUS;
-
+int readyframe = 0;
 
 
 int checksum = 0;
@@ -272,31 +272,30 @@ void render_page() {
 
 
 void setup() {
-  WiFi.setPins(8,7,4,2);
+  WiFi.setPins(8, 7, 4, 2);
 
   memset(&values, 0, sizeof(values));
 
   tft.begin();
   if (!ts.begin()) {
     while (1);
-  } 
-
+  }
 
   tft.setRotation(1);
   tft.setTextColor(ILI9341_WHITE, ILI9341_BLACK);
-  
+
   render_page();
 
   Serial.begin(19200);
   Serial1.begin(19200);
 
   status = WiFi.beginAP(ssid, pass);
-  if ( status != WL_AP_LISTENING) { 
+  if ( status != WL_AP_LISTENING) {
     Serial.println("Couldn't get a wifi connection");
-    while(true);
+    while (true);
   }
   server.begin();
-  
+
 }
 
 void SERCOM0_Handler() {
@@ -315,7 +314,7 @@ void Uart::IrqHandler() {
     // TODO: if (sercom->isParityErrorUART()) ....
     sercom->clearStatusUART();
   }
-  WiFiClient client = server.available();
+
   if (rxBuffer.isFull()) {
     size_t available;
     for (available = Serial1.available(); available--;) {
@@ -325,9 +324,7 @@ void Uart::IrqHandler() {
         uint8_t checksum = frame.channel + frame.magic + ((frame.value & 0xff00) >> 8) + (frame.value & 0x00ff) & 0xff;
         if (frame.checksum == checksum) {
           values[frame.channel] = be16toh(frame.value);
-          
-          client.write((byte*)&frame, sizeof(frame));
-          memset(&frame, 0, sizeof(frame));
+          readyframe = 1;
         }
       }
     }
@@ -338,6 +335,13 @@ void loop() {
   TS_Point p = ts.getPoint();
   p.x = map(p.x, TS_MINX, TS_MAXX, 0, tft.width());
   p.y = map(p.y, TS_MINY, TS_MAXY, 0, tft.height());
+
+  WiFiClient client = server.available();
+  if (client && readyframe == 1) {
+    client.write((byte*)&frame, sizeof(frame));
+    memset(&frame, 0, sizeof(frame));
+    readyframe = 0;
+  }
 
   tft.setCursor(100, 175);
   channels[page].render();
