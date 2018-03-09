@@ -63,7 +63,7 @@ int page = 1;
 uint16_t values[35];
 
 char printbuf[10];
-
+float val;
 void render_rpm() {
   sprintf(printbuf, "%4d", values[1]);
   tft.println(printbuf);
@@ -93,122 +93,120 @@ void render_ign() {
   tft.println(values[6] / 2);
 }
 
-void render_secinjpw() {
-  tft.println(values[7] / 62);
-}
 
 void render_injpw() {
-  tft.println(values[8] / 62);
+  tft.println((float)values[7] / 62);
 }
 
 void render_egt1() {
-  tft.println(values[9]);
+  tft.println(values[8]);
 }
 
 void render_egt2() {
-  tft.println(values[10]);
+  tft.println(values[9]);
 
 }
 
 void render_knockv() {
-  tft.println((float)values[11] / 51, 1);
+  tft.println((float)values[10] / 51, 1);
 
 }
 
 void render_dwell() {
-  tft.println(values[12] / 20);
+  tft.println((float)values[11] / 20);
 }
+
 
 void render_afr() {
   tft.println((float)values[12] / 10, 1);
 }
 
 void render_gear() {
-  tft.println(values[14]);
+  tft.println(values[13]);
 }
 
 void render_baro() {
-  tft.println(values[15]);
+  tft.println(values[14]);
 
 }
 
 void render_analog1() {
-  tft.println((float)values[16] / 51, 1);
+  tft.println((float)values[15] / 51, 1);
 }
 
 void render_analog2() {
-  tft.println((float)values[17] / 51, 1);
+  tft.println((float)values[16] / 51, 1);
 }
 
 void render_analog3() {
-  tft.println((float)values[18] / 51, 1);
+  tft.println((float)values[17] / 51, 1);
 }
 
 void render_analog4() {
-  tft.println((float)values[19] / 51, 1);
+  tft.println((float)values[18] / 51, 1);
 }
 
 void render_injdc() {
-  tft.println(values[20] / 2);
+  tft.println(values[19] / 2);
 }
 
 void render_ecutmp() {
-  tft.println(values[21]);
+  tft.println(values[20]);
 
 }
 
 void render_oilps() {
-  tft.println(values[22] / 16);
+  tft.println(values[21] / 16);
 }
 
 void render_oiltmp() {
-  tft.println(values[23]);
+  tft.println(values[22]);
 
 }
 
 void render_fuelps() {
-  tft.println(values[24]);
+  tft.println((float)values[23] / 32);
 
 }
 
 void render_clt() {
-  tft.println(values[25] / 32);
+  tft.println(values[24]);
 }
 
 void render_ffcnt() {
-  tft.println(values[26] / 2);
+  tft.println(values[25] / 2);
 }
 
 void render_fftmp() {
-  tft.println(values[27]);
+  tft.println(values[26]);
 }
 
 void render_lambda() {
-  tft.println((float)values[28] / 128, 1);
+  tft.println((float)values[27] / 128, 1);
 }
 
 void render_speed() {
-  tft.println(values[29] / 4);
+  tft.println(values[28] / 4);
 }
 
 void render_fpdelta() {
-  tft.println(values[30] / 4);
+  tft.println(values[29]);
 }
 
 void render_fuellvl() {
-  tft.println(values[31]);
+  tft.println(values[30]);
 }
 
 void render_table() {
-  tft.println(values[32]);
+  tft.println(values[31]);
 }
 
 void render_lambdatgt() {
-  tft.println((float)values[33] / 100, 1);
+  tft.println((float)values[32] / 100, 1);
 }
 
 void render_afrtgt() {
-  tft.println((float)values[34] / 10, 1);
+  tft.println((float)values[33] / 10, 1);
 }
 
 void render_cel() {
@@ -229,7 +227,7 @@ struct {
   { "Inj. PW", "ms", render_injpw },
   { "EGT #1", "C", render_egt1 },
   { "EGT #2", "C", render_egt2 },
-  { "Knock Level", "V", render_knockv },
+  { "Knock Lvl.", "V", render_knockv },
   { "Dwell", "ms", render_dwell },
   { "AFR", "AFR", render_afr },
   { "Gear", "", render_gear },
@@ -242,32 +240,37 @@ struct {
   { "ECU Temp.", "C", render_ecutmp },
   { "Oil press.", "Bar", render_oilps },
   { "Oil temp.", "C", render_oiltmp },
-  { "Fuel press.", "Bar", render_fuelps },
+  { "Fuel ps.", "Bar", render_fuelps },
   { "CLT", "C", render_clt },
   { "FF content", "%", render_ffcnt },
   { "FF Temp", "C", render_fftmp },
-  { "Lambda", "λ", render_lambda },
+  { "Lambda", "Î»", render_lambda },
   { "Speed", "kmh", render_speed },
   { "FP delta", "kPa", render_fpdelta },
   { "Fuel lvll", "%", render_fuellvl },
   { "Table", "", render_table },
-  { "Lambda tgt.", "λ", render_lambdatgt },
+  { "Lambda tgt", "Î»", render_lambdatgt },
   { "AFR Target", "AFR", render_afrtgt },
   {"cel", "", render_cel}
 };
 
-#include <Fonts/FreeSerifBoldItalic12pt7b.h>
 
 void render_page() {
-  tft.setFont(&FreeSerifBoldItalic12pt7b);
   tft.fillScreen(ILI9341_BLACK);
-  tft.setCursor(10, 20);
-  tft.setTextSize(1);
-  tft.println(channels[page].name);
-  tft.setCursor(230, 235);
-  tft.setTextSize(1);
-  tft.println(channels[page].unit);
+  tft.setCursor(2, 2);
   tft.setTextSize(5);
+  tft.println(channels[page].name);
+  tft.setCursor(245, 125);
+  tft.setTextSize(4);
+  tft.println(channels[page].unit);
+  tft.drawRect(2, 190, 155, 50, ILI9341_WHITE);
+  tft.drawRect(165, 190, 155, 50, ILI9341_WHITE);
+  tft.setCursor(25, 200);
+  tft.println("PREV");
+  tft.setCursor(200, 200);
+  tft.println("NEXT");
+  tft.setTextSize(8);
+  
 }
 
 
@@ -301,7 +304,7 @@ void setup() {
 void SERCOM0_Handler() {
   Serial1.IrqHandler();
 }
-
+//byte myarray[];
 void Uart::IrqHandler() {
   if (sercom->availableDataUART()) {
     rxBuffer.store_char(sercom->readDataUART());
@@ -314,7 +317,7 @@ void Uart::IrqHandler() {
     // TODO: if (sercom->isParityErrorUART()) ....
     sercom->clearStatusUART();
   }
-
+  //WiFiClient client = server.available();
   if (rxBuffer.isFull()) {
     size_t available;
     for (available = Serial1.available(); available--;) {
@@ -324,7 +327,6 @@ void Uart::IrqHandler() {
         uint8_t checksum = frame.channel + frame.magic + ((frame.value & 0xff00) >> 8) + (frame.value & 0x00ff) & 0xff;
         if (frame.checksum == checksum) {
           values[frame.channel] = be16toh(frame.value);
-          readyframe = 1;
         }
       }
     }
@@ -336,14 +338,7 @@ void loop() {
   p.x = map(p.x, TS_MINX, TS_MAXX, 0, tft.width());
   p.y = map(p.y, TS_MINY, TS_MAXY, 0, tft.height());
 
-  WiFiClient client = server.available();
-  if (client && readyframe == 1) {
-    client.write((byte*)&frame, sizeof(frame));
-    memset(&frame, 0, sizeof(frame));
-    readyframe = 0;
-  }
-
-  tft.setCursor(100, 175);
+  tft.setCursor(60, 60);
   channels[page].render();
 
   if (ts.touched()) {
@@ -355,3 +350,4 @@ void loop() {
     render_page();
   }
 }
+
