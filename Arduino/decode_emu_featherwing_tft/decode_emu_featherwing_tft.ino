@@ -270,7 +270,7 @@ void render_page() {
   tft.setCursor(200, 200);
   tft.println("NEXT");
   tft.setTextSize(8);
-  
+
 }
 
 
@@ -292,12 +292,12 @@ void setup() {
   Serial.begin(19200);
   Serial1.begin(19200);
 
-  status = WiFi.beginAP(ssid, pass);
-  if ( status != WL_AP_LISTENING) {
-    Serial.println("Couldn't get a wifi connection");
-    while (true);
-  }
-  server.begin();
+  //status = WiFi.beginAP(ssid, pass);
+  //if ( status != WL_AP_LISTENING) {
+  //  Serial.println("Couldn't get a wifi connection");
+  //  while (true);
+  //}
+  //server.begin();
 
 }
 
@@ -338,16 +338,30 @@ void loop() {
   p.x = map(p.x, TS_MINX, TS_MAXX, 0, tft.width());
   p.y = map(p.y, TS_MINY, TS_MAXY, 0, tft.height());
 
-  tft.setCursor(60, 60);
-  channels[page].render();
-
   if (ts.touched()) {
-    TS_Point p = ts.getPoint();
-    page++;
+    while (ts.touched()) {
+      p = ts.getPoint();
+    }
+    if (p.x > 3000 && p.y > 2200) {
+      page++;
+    }
+    if (p.x > 3000 && p.y < 2000) {
+      page--;
+    }
+    Serial.println(page);
     if (page >= 35) {
       page = 1;
     }
+    if (page <= 0) {
+      page = 34;
+    }
     render_page();
   }
+
+  tft.setCursor(60, 60);
+  channels[page].render();
+
+
+
 }
 
